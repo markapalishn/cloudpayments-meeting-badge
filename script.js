@@ -308,8 +308,19 @@ class MeetingTimer {
                 this.updateFill(0, totalDuration);
             }
         } else {
-            this.elements.currentTimer.textContent = '00:00';
+            // Если нет текущей встречи, показываем "Free-time" и обратный отсчет до следующей встречи
+            this.elements.currentTimer.textContent = 'Free-time';
             this.elements.currentTimer.className = 'timer';
+            
+            // Если есть следующая встреча, показываем обратный отсчет до неё
+            if (this.nextMeeting) {
+                const timeToNext = this.nextMeeting.start - now;
+                if (timeToNext > 0) {
+                    this.elements.currentTimer.textContent = this.formatTimeRemaining(timeToNext);
+                } else {
+                    this.elements.currentTimer.textContent = 'Free-time';
+                }
+            }
             
             // Если нет текущей встречи, показываем прозрачный фон
             const meetingBadge = document.querySelector('.meeting-badge');
