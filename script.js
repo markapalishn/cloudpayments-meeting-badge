@@ -310,7 +310,7 @@ class MeetingTimer {
         } else {
             // Если нет текущей встречи, показываем "Free-time" и обратный отсчет до следующей встречи
             this.elements.currentTimer.textContent = 'Free-time';
-            this.elements.currentTimer.className = 'timer';
+            this.elements.currentTimer.className = 'timer free-time';
             
             // Если есть следующая встреча, показываем обратный отсчет до неё
             if (this.nextMeeting) {

@@ -164,6 +164,11 @@ body {
     color: #f44336;
 }
 
+.timer.free-time {
+    color: #00aa00;
+    font-style: italic;
+}
+
 /* Стили для логотипа компании когда встреч нет */
 .company-logo {
     width: 100%;
