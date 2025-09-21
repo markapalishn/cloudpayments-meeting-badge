@@ -54,9 +54,19 @@ class MeetingTimer {
             
             // Прямой запрос к Google Calendar (работает с HTTPS)
             const startTime = Date.now();
-            const response = await fetch(calendarUrl);
+            let response;
+            
+            try {
+                response = await fetch(calendarUrl);
+            } catch (corsError) {
+                // Если CORS блокирует (локальное тестирование), используем proxy
+                console.log('CORS блокирует прямой запрос, используем proxy...');
+                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(calendarUrl)}`;
+                response = await fetch(proxyUrl);
+            }
+            
             const loadTime = Date.now() - startTime;
-            console.log(`Прямой запрос выполнен за ${loadTime}ms`);
+            console.log(`Запрос выполнен за ${loadTime}ms`);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
