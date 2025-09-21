@@ -16,13 +16,6 @@ class MeetingTimer {
             nextCountdown: document.getElementById('nextCountdown'),
             meetingTitle: document.querySelector('.meeting-title')
         };
-        
-        this.setupEmailInterface();
-    }
-    
-    setupEmailInterface() {
-        // Календарь захардкожен, интерфейс настройки не нужен
-        console.log('Используется захардкоженный Google Calendar v1.1');
     }
     
     hideBadge() {
@@ -39,32 +32,15 @@ class MeetingTimer {
         console.log('Есть встречи - показываем бейдж');
     }
     
-    
     async loadMeetings() {
         try {
             // Загружаем из захардкоженного Google Calendar
-            const publicCalendarUrl = this.getPublicCalendarUrl();
-            if (publicCalendarUrl) {
-                await this.loadFromPublicCalendar(publicCalendarUrl);
-            } else {
-                // Если что-то пошло не так, скрываем бейдж
-                this.hideBadge();
-            }
+            const calendarUrl = this.getGoogleCalendarUrl();
+            await this.loadFromPublicCalendar(calendarUrl);
         } catch (error) {
             console.error('Ошибка загрузки встреч:', error);
             this.hideBadge();
         }
-    }
-    
-    getPublicCalendarUrl() {
-        // Получаем Google Calendar URL
-        const googleCalendarUrl = this.getGoogleCalendarUrl();
-        if (googleCalendarUrl) {
-            return googleCalendarUrl;
-        }
-        
-        // Если URL не указан, используем демо-режим
-        return null;
     }
     
     getGoogleCalendarUrl() {
@@ -92,8 +68,7 @@ class MeetingTimer {
             // Проверяем, не получили ли мы HTML ошибку вместо iCal
             if (icalData.includes('<html') || icalData.includes('Error 404')) {
                 console.error('Получена HTML ошибка вместо iCal данных. Календарь не публичный или не существует.');
-                console.log('Используем демо-данные для тестирования...');
-                this.loadDemoData();
+                this.hideBadge();
                 return;
             }
             
@@ -104,24 +79,8 @@ class MeetingTimer {
             
         } catch (error) {
             console.error('Ошибка загрузки календаря:', error);
-            console.log('Переключаемся на демо-данные...');
-            this.loadDemoData();
+            this.hideBadge();
         }
-    }
-    
-    loadDemoData() {
-        const now = new Date();
-        
-        // Создаем демо-встречу на сегодня
-        const demoEvents = [
-            {
-                summary: 'Демо встреча',
-                start: new Date(now.getTime() + 30 * 60 * 1000), // через 30 минут
-                end: new Date(now.getTime() + 90 * 60 * 1000)    // длится 1 час
-            }
-        ];
-        
-        this.processCalendarEvents(demoEvents);
     }
     
     parseICalData(icalData) {
@@ -450,3 +409,4 @@ window.refreshCalendar = () => {
         meetingTimer.refreshCalendar();
     }
 };
+
