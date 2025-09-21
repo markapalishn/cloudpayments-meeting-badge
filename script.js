@@ -76,11 +76,11 @@ class MeetingTimer {
         try {
             console.log('Загружаем календарь из:', calendarUrl);
             
-            // Сразу используем CORS proxy для обхода блокировок
-            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(calendarUrl)}`;
-            console.log('Используем CORS proxy:', proxyUrl);
-            
-            const response = await fetch(proxyUrl);
+            // Прямой запрос к Google Calendar (работает с HTTPS)
+            const startTime = Date.now();
+            const response = await fetch(calendarUrl);
+            const loadTime = Date.now() - startTime;
+            console.log(`Прямой запрос выполнен за ${loadTime}ms`);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -103,7 +103,7 @@ class MeetingTimer {
             this.processCalendarEvents(events);
             
         } catch (error) {
-            console.error('Ошибка загрузки календаря через proxy:', error);
+            console.error('Ошибка загрузки календаря:', error);
             console.log('Переключаемся на демо-данные...');
             this.loadDemoData();
         }
