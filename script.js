@@ -13,7 +13,8 @@ class MeetingTimer {
     initializeElements() {
         this.elements = {
             currentTimer: document.getElementById('currentTimer'),
-            nextCountdown: document.getElementById('nextCountdown')
+            nextCountdown: document.getElementById('nextCountdown'),
+            meetingTitle: document.querySelector('.meeting-title')
         };
         
         this.setupEmailInterface();
@@ -208,11 +209,18 @@ class MeetingTimer {
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
         
+        console.log('Обрабатываем события календаря:', events.length);
+        console.log('Текущее время:', now.toLocaleString());
+        console.log('Сегодня:', today.toLocaleDateString());
+        console.log('Завтра:', tomorrow.toLocaleDateString());
+        
         // Фильтруем события на сегодня и завтра
         const relevantEvents = events.filter(event => {
             const eventDate = new Date(event.start);
             return eventDate >= today && eventDate < tomorrow;
         });
+        
+        console.log('Релевантных событий:', relevantEvents.length);
         
         // Сортируем по времени начала
         relevantEvents.sort((a, b) => a.start - b.start);
@@ -227,12 +235,17 @@ class MeetingTimer {
             return event.start > now;
         });
         
-        // Если нет ни текущей, ни следующей встречи - скрываем бейдж
+        console.log('Текущая встреча:', this.currentMeeting ? this.currentMeeting.title : 'нет');
+        console.log('Следующая встреча:', this.nextMeeting ? this.nextMeeting.title : 'нет');
+        
+        // Если нет ни текущей, ни следующей встречи - показываем логотип компании
         if (!this.currentMeeting && !this.nextMeeting) {
+            console.log('Нет встреч - показываем логотип компании');
             this.hideBadge();
             return;
         }
         
+        console.log('Есть встречи - показываем бейдж');
         this.updateDisplay();
     }
     
