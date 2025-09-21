@@ -286,6 +286,9 @@ class MeetingTimer {
             const remaining = this.currentMeeting.end - now;
             const totalDuration = this.currentMeeting.end - this.currentMeeting.start;
             
+            // Обновляем заголовок
+            this.elements.meetingTitle.textContent = 'Конец через';
+            
             if (remaining > 0) {
                 // Показываем оставшееся время до конца встречи
                 this.elements.currentTimer.textContent = this.formatTimeRemaining(remaining);
@@ -309,6 +312,7 @@ class MeetingTimer {
             }
         } else {
             // Если нет текущей встречи, показываем "Free-time" и обратный отсчет до следующей встречи
+            this.elements.meetingTitle.textContent = 'Free-time';
             this.elements.currentTimer.textContent = 'Free-time';
             this.elements.currentTimer.className = 'timer';
             
@@ -379,7 +383,7 @@ class MeetingTimer {
         const seconds = totalSeconds % 60;
         
         if (hours > 0) {
-            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
         } else {
             return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
