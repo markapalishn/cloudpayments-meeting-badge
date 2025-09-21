@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBS Meeting Timer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="meeting-badge" id="meetingBadge">
+        <div class="left-section">
+            <div class="cloud-logo">
+                <img src="assets/svg/Cloud-logo.svg" alt="Cloud" />
+            </div>
+            <div class="meeting-info">
+                <div class="meeting-title">Конец через</div>
+                <div class="timer" id="currentTimer">00:00</div>
+            </div>
+        </div>
+        
+        <div class="right-section">
+            <div class="next-info">
+                <div class="next-label">следующая</div>
+                <div class="next-time" id="nextCountdown">--:--</div>
+            </div>
+        </div>
+        
+        <div class="decorative-element">
+            <img src="assets/svg/Element-1.svg" alt="Decorative" />
+        </div>
+    </div>
+    
+    <!-- Логотип компании когда встреч нет -->
+    <div class="company-logo" id="companyLogo" style="display: none;">
+        <img src="assets/svg/All logo Cloud.svg" alt="Cloud Company Logo" />
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
