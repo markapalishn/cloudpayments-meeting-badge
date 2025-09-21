@@ -236,11 +236,11 @@ class MeetingTimer {
             this.updateTimers();
         }, 1000);
         
-        // Обновляем данные о встречах каждую минуту
+        // Обновляем данные о встречах каждые 30 секунд
         this.calendarUpdateInterval = setInterval(() => {
             console.log('Обновляем данные календаря...');
             this.loadMeetings();
-        }, 60 * 1000); // 1 минута
+        }, 30 * 1000); // 30 секунд
     }
     
     stopTimer() {
@@ -258,6 +258,22 @@ class MeetingTimer {
     refreshCalendar() {
         console.log('Принудительное обновление календаря...');
         this.loadMeetings();
+    }
+    
+    // Умное обновление - проверяет изменения перед обновлением
+    smartRefresh() {
+        const now = new Date();
+        const lastUpdate = this.lastCalendarUpdate || 0;
+        const timeSinceUpdate = now - lastUpdate;
+        
+        // Обновляем только если прошло больше 10 секунд с последнего обновления
+        if (timeSinceUpdate > 10000) {
+            console.log('Умное обновление календаря...');
+            this.lastCalendarUpdate = now;
+            this.loadMeetings();
+        } else {
+            console.log('Пропускаем обновление - слишком рано');
+        }
     }
     
     updateTimers() {
@@ -395,6 +411,22 @@ window.addEventListener('message', (event) => {
     }
 });
 
+// Обновление при фокусе на вкладку (когда пользователь возвращается)
+window.addEventListener('focus', () => {
+    if (meetingTimer) {
+        console.log('Вкладка получила фокус - обновляем календарь');
+        meetingTimer.smartRefresh();
+    }
+});
+
+// Обновление при видимости страницы (когда пользователь переключается на вкладку)
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && meetingTimer) {
+        console.log('Страница стала видимой - обновляем календарь');
+        meetingTimer.smartRefresh();
+    }
+});
+
 // Обработка горячих клавиш для обновления
 document.addEventListener('keydown', (event) => {
     // F5 - обновить календарь
@@ -413,10 +445,16 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
-// Глобальная функция для обновления календаря (можно вызвать из консоли)
+// Глобальные функции для обновления календаря (можно вызвать из консоли)
 window.refreshCalendar = () => {
     if (meetingTimer) {
         meetingTimer.refreshCalendar();
+    }
+};
+
+window.smartRefresh = () => {
+    if (meetingTimer) {
+        meetingTimer.smartRefresh();
     }
 };
 
