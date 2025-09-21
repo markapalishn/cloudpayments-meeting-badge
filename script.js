@@ -22,7 +22,7 @@ class MeetingTimer {
     
     setupEmailInterface() {
         // Календарь захардкожен, интерфейс настройки не нужен
-        console.log('Используется захардкоженный Google Calendar');
+        console.log('Используется захардкоженный Google Calendar v1.1');
     }
     
     hideBadge() {
