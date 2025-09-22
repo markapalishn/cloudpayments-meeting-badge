@@ -1,3 +1,9 @@
+:root {
+    --primary-color: #0037C0;
+    --warning-color: #FF9800;
+    --overdue-color: #f44336;
+}
+
 @font-face {
     font-family: 'Stolzl';
     src: url('assets/fonts/stolzl_medium.otf') format('opentype');
@@ -39,7 +45,7 @@ body {
     width: 100%;
     height: 100%;
     background: transparent; /* Прозрачный фон */
-    border: 3px solid #0037C0; /* Синяя внутренняя обводка */
+    border: 3px solid var(--primary-color, #0037C0); /* Синяя внутренняя обводка */
     border-radius: 30px;
     position: relative;
     overflow: hidden;

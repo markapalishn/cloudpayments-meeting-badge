@@ -44,8 +44,8 @@ class MeetingTimer {
     }
     
     getGoogleCalendarUrl() {
-        // Приватная ссылка на календарь "Тест" с ключом доступа
-        return 'https://calendar.google.com/calendar/ical/a94fd18710fba31c468c5bb408b8f9895994fee34f76dc38fe053834daaff590%40group.calendar.google.com/private-44dfd0ef1af07d1b29e7b892de3bc009/basic.ics';
+        // Получаем URL календаря из конфигурации
+        return window.CONFIG.CALENDAR_URL;
     }
     
     async loadFromPublicCalendar(calendarUrl) {
@@ -234,19 +234,19 @@ class MeetingTimer {
     startTimer() {
         this.updateInterval = setInterval(() => {
             this.updateTimers();
-        }, 1000);
+        }, window.CONFIG.TIMER_INTERVAL);
         
-        // Обновляем данные о встречах каждые 30 секунд
+        // Обновляем данные о встречах
         this.calendarUpdateInterval = setInterval(() => {
             console.log('Обновляем данные календаря...');
             this.loadMeetings();
-        }, 30 * 1000); // 30 секунд
+        }, window.CONFIG.CALENDAR_INTERVAL);
         
-        // Принудительное обновление для OBS каждые 30 секунд
+        // Принудительное обновление для OBS
         this.obsRefreshInterval = setInterval(() => {
             console.log('Принудительное обновление для OBS...');
             this.forceOBSRefresh();
-        }, 30 * 1000); // 30 секунд
+        }, window.CONFIG.OBS_REFRESH_INTERVAL);
     }
     
     stopTimer() {
@@ -322,8 +322,8 @@ class MeetingTimer {
                 this.elements.currentTimer.textContent = this.formatTimeRemaining(remaining);
                 this.elements.currentTimer.className = 'timer';
                 
-                // Предупреждение за 5 минут до конца
-                if (remaining < 5 * 60 * 1000) {
+                // Предупреждение за заданное время до конца
+                if (remaining < window.CONFIG.WARNING_TIME) {
                     this.elements.currentTimer.className = 'timer warning';
                 }
                 
