@@ -263,7 +263,7 @@ class MeetingTimer {
             const result = new Date(dateStr);
             logger.info('📅 Результат (UTC):', result, 'Valid:', !isNaN(result.getTime()));
             return result;
-        } else {
+        } else if (dateString.length >= 15 && dateString.includes('T')) {
             // Простой формат: 20250922T104500
             const year = dateString.substring(0, 4);
             const month = dateString.substring(4, 6);
