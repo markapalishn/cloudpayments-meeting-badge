@@ -196,7 +196,21 @@ class MeetingTimer {
                     end: currentEvent.end || 'ОТСУТСТВУЕТ'
                 });
                 
-                if (currentEvent.summary && currentEvent.start && currentEvent.end) {
+                // Проверяем каждое поле отдельно
+                const hasSummary = !!currentEvent.summary;
+                const hasStart = !!currentEvent.start;
+                const hasEnd = !!currentEvent.end;
+                
+                logger.info('🔍 Детальная проверка:', {
+                    hasSummary,
+                    hasStart, 
+                    hasEnd,
+                    summary: currentEvent.summary,
+                    start: currentEvent.start,
+                    end: currentEvent.end
+                });
+                
+                if (hasSummary && hasStart && hasEnd) {
                     logger.info('✅ Событие добавлено:', {
                         summary: currentEvent.summary,
                         start: currentEvent.start,
@@ -208,7 +222,14 @@ class MeetingTimer {
                         end: currentEvent.end
                     });
                 } else {
-                    logger.warn('❌ Событие пропущено - неполные данные:', currentEvent);
+                    logger.warn('❌ Событие пропущено - неполные данные:', {
+                        missing: {
+                            summary: !hasSummary,
+                            start: !hasStart,
+                            end: !hasEnd
+                        },
+                        event: currentEvent
+                    });
                 }
                 currentEvent = null;
             } else if (currentEvent) {
