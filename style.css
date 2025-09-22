@@ -33,10 +33,13 @@
 
 html {
     width: 686px;
-    height: 350px; /* Увеличиваем высоту для новых бейджей */
+    height: 350px;
     overflow: hidden;
     margin: 0;
     padding: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
 body {
@@ -51,7 +54,9 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
 /* Контейнер для всех элементов бейджа */
@@ -62,9 +67,13 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    position: relative;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     margin: 0;
     padding: 0;
+    z-index: 1000;
 }
 
 .meeting-badge {
@@ -270,12 +279,24 @@ body {
 }
 
 /* Жесткая фиксация для OBS - предотвращает "пляски" */
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* Дополнительная стабилизация для OBS */
+html, body {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: auto;
+}
+
 .badge-container {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1000;
+    transform: translate(-50%, -50%) translateZ(0);
+    -webkit-transform: translate(-50%, -50%) translateZ(0);
+    will-change: auto;
 }
 
 /* Адаптивность для разных размеров в OBS */
