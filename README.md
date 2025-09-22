@@ -50,13 +50,14 @@ const CONFIG = {
 Скопируйте и вставьте этот код в поле **CSS** в настройках Browser Source:
 
 ```css
-/* Принудительно устанавливаем точные размеры */
+/* Принудительно устанавливаем точные размеры и прозрачность */
 html, body {
     width: 686px !important;
     height: 350px !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
+    background: transparent !important;
 }
 
 /* Убираем любые отступы и скролл */
@@ -64,11 +65,17 @@ html, body {
     box-sizing: border-box !important;
 }
 
+/* Принудительная прозрачность для всех элементов */
+.badge-container {
+    background: transparent !important;
+}
+
 /* Фиксируем размеры основного контейнера */
 .meeting-badge {
     width: 626px !important;
     height: 130px !important;
     margin: 0 !important;
+    background: transparent !important;
 }
 
 /* Фиксируем размеры логотипа компании */
@@ -76,18 +83,21 @@ html, body {
     width: 626px !important;
     height: 130px !important;
     margin: 0 !important;
+    background: #0037C0 !important; /* Только логотип компании имеет фон */
 }
 
 /* Фиксируем размеры бейджей сотрудника */
 .employee-info {
     width: 626px !important;
     margin: 30px 0 0 0 !important;
+    background: transparent !important;
 }
 
 /* Фиксируем размеры зон ответственности */
 .responsibility-areas {
     width: 626px !important;
     margin: 30px 0 0 0 !important;
+    background: transparent !important;
 }
 ```
 

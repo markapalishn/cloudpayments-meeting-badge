@@ -34,6 +34,7 @@
 html {
     width: 686px;
     height: 350px;
+    background: transparent !important;
     overflow: hidden;
     margin: 0;
     padding: 0;
@@ -41,7 +42,7 @@ html {
 
 body {
     font-family: 'Stolzl', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #1a1a1a; /* Темный фон для тестирования в браузере */
+    background: transparent !important;
     color: white;
     overflow: hidden;
     margin: 0;
@@ -58,6 +59,7 @@ body {
 .badge-container {
     width: 626px;
     height: 350px;
+    background: transparent !important;
     display: flex;
     flex-direction: column;
     align-items: flex-start; /* Выравнивание по левому краю */
