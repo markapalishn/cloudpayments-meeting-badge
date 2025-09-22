@@ -250,13 +250,21 @@ class MeetingTimer {
             logger.info('📅 Результат (Moscow):', result, 'Valid:', !isNaN(result.getTime()));
             return result;
         } else if (dateString.endsWith('Z')) {
-            // Формат UTC: 20250921T180000Z
-            const year = dateString.substring(0, 4);
-            const month = dateString.substring(4, 6);
-            const day = dateString.substring(6, 8);
-            const hour = dateString.substring(9, 11);
-            const minute = dateString.substring(11, 13);
-            const second = dateString.substring(13, 15);
+            // Формат UTC: DTSTART:20250921T180000Z
+            // Извлекаем только дату после двоеточия
+            const colonIndex = dateString.indexOf(':');
+            if (colonIndex === -1) {
+                logger.warn('❌ Не найден разделитель ":" в UTC дате:', dateString);
+                return new Date('Invalid Date');
+            }
+            
+            const datePart = dateString.substring(colonIndex + 1);
+            const year = datePart.substring(0, 4);
+            const month = datePart.substring(4, 6);
+            const day = datePart.substring(6, 8);
+            const hour = datePart.substring(9, 11);
+            const minute = datePart.substring(11, 13);
+            const second = datePart.substring(13, 15);
             
             const dateStr = `${year}-${month}-${day}T${hour}:${minute}:${second}Z`;
             logger.info('📅 Создаем дату (UTC):', dateStr);
@@ -264,13 +272,21 @@ class MeetingTimer {
             logger.info('📅 Результат (UTC):', result, 'Valid:', !isNaN(result.getTime()));
             return result;
         } else if (dateString.length >= 15 && dateString.includes('T')) {
-            // Простой формат: 20250922T104500
-            const year = dateString.substring(0, 4);
-            const month = dateString.substring(4, 6);
-            const day = dateString.substring(6, 8);
-            const hour = dateString.substring(9, 11);
-            const minute = dateString.substring(11, 13);
-            const second = dateString.substring(13, 15);
+            // Простой формат: DTSTART:20250922T104500
+            // Извлекаем только дату после двоеточия
+            const colonIndex = dateString.indexOf(':');
+            if (colonIndex === -1) {
+                logger.warn('❌ Не найден разделитель ":" в простой дате:', dateString);
+                return new Date('Invalid Date');
+            }
+            
+            const datePart = dateString.substring(colonIndex + 1);
+            const year = datePart.substring(0, 4);
+            const month = datePart.substring(4, 6);
+            const day = datePart.substring(6, 8);
+            const hour = datePart.substring(9, 11);
+            const minute = datePart.substring(11, 13);
+            const second = datePart.substring(13, 15);
             
             const dateStr = `${year}-${month}-${day}T${hour}:${minute}:${second}+03:00`;
             logger.info('📅 Создаем дату (простой):', dateStr);
