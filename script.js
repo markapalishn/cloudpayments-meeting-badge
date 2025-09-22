@@ -466,6 +466,16 @@ class MeetingTimer {
 // Инициализация при загрузке страницы
 let meetingTimer;
 document.addEventListener('DOMContentLoaded', () => {
+    // Определяем, запущено ли в OBS
+    const isOBS = window.location.href.includes('obs') || 
+                  window.navigator.userAgent.includes('OBS') ||
+                  window.parent !== window;
+    
+    if (isOBS) {
+        document.body.classList.add('obs-mode');
+        document.body.style.background = 'transparent';
+    }
+    
     meetingTimer = new MeetingTimer();
 });
 
