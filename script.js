@@ -122,15 +122,23 @@ class MeetingTimer {
         try {
             logger.debug('Загружаем календарь из:', calendarUrl);
             
+            // Добавляем параметр для обхода кэша Google Calendar
+            let urlWithCacheBuster = calendarUrl;
+            if (calendarUrl.includes('calendar.google.com')) {
+                const separator = calendarUrl.includes('?') ? '&' : '?';
+                urlWithCacheBuster = `${calendarUrl}${separator}_t=${Date.now()}`;
+                logger.info('🔄 Добавлен параметр обхода кэша:', urlWithCacheBuster);
+            }
+            
             // Используем proxy для обхода CORS ограничений Google Calendar
             const startTime = Date.now();
             let response;
             
             // Проверяем, является ли это Google Calendar URL
-            logger.info('🔍 Проверяем URL календаря:', calendarUrl);
-            if (calendarUrl.includes('calendar.google.com')) {
+            logger.info('🔍 Проверяем URL календаря:', urlWithCacheBuster);
+            if (urlWithCacheBuster.includes('calendar.google.com')) {
                 logger.info('🔧 ОБХОД CORS: Используем proxy для Google Calendar...');
-                response = await this.fetchWithProxy(calendarUrl);
+                response = await this.fetchWithProxy(urlWithCacheBuster);
             } else {
                 logger.info('🔧 Прямой запрос для не-Google календаря...');
                 // Для других календарей пробуем прямой запрос
