@@ -184,8 +184,14 @@ class MeetingTimer {
                 currentEvent = {};
                 logger.debug('Начинаем новое событие');
             } else if (line === 'END:VEVENT' && currentEvent) {
+                logger.info('🔍 Проверяем событие:', {
+                    summary: currentEvent.summary || 'ОТСУТСТВУЕТ',
+                    start: currentEvent.start || 'ОТСУТСТВУЕТ',
+                    end: currentEvent.end || 'ОТСУТСТВУЕТ'
+                });
+                
                 if (currentEvent.summary && currentEvent.start && currentEvent.end) {
-                    logger.debug('Добавляем событие:', {
+                    logger.info('✅ Событие добавлено:', {
                         summary: currentEvent.summary,
                         start: currentEvent.start,
                         end: currentEvent.end
@@ -196,7 +202,7 @@ class MeetingTimer {
                         end: currentEvent.end
                     });
                 } else {
-                    logger.warn('Событие пропущено - неполные данные:', currentEvent);
+                    logger.warn('❌ Событие пропущено - неполные данные:', currentEvent);
                 }
                 currentEvent = null;
             } else if (currentEvent) {
@@ -213,6 +219,7 @@ class MeetingTimer {
                 switch (key) {
                     case 'SUMMARY':
                         currentEvent.summary = value;
+                        logger.info('📝 Найден SUMMARY:', value);
                         break;
                     case 'DTSTART':
                         currentEvent.start = this.parseICalDate(line); // Передаем всю строку для правильного парсинга
