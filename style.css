@@ -37,14 +37,11 @@ html {
     overflow: hidden;
     margin: 0;
     padding: 0;
-    position: fixed;
-    top: 0;
-    left: 0;
 }
 
 body {
     font-family: 'Stolzl', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: transparent;
+    background: #1a1a1a; /* Темный фон для тестирования в браузере */
     color: white;
     overflow: hidden;
     margin: 0;
@@ -54,9 +51,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    position: fixed;
-    top: 0;
-    left: 0;
+    position: relative;
 }
 
 /* Контейнер для всех элементов бейджа */
@@ -65,12 +60,9 @@ body {
     height: 350px;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start; /* Выравнивание по левому краю */
     justify-content: flex-start;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    position: relative;
     margin: 0;
     padding: 0;
     z-index: 1000;
@@ -233,7 +225,7 @@ body {
     margin-top: 30px;
     align-items: center;
     width: 100%;
-    justify-content: center;
+    justify-content: flex-start; /* Выравнивание по левому краю */
 }
 
 .position-badge {
@@ -273,7 +265,7 @@ body {
     font-weight: 350;
     font-size: 40px;
     margin-top: 30px;
-    text-align: center;
+    text-align: left; /* Выравнивание по левому краю */
     white-space: nowrap;
     width: 100%;
 }
@@ -294,9 +286,26 @@ html, body {
 }
 
 .badge-container {
-    transform: translate(-50%, -50%) translateZ(0);
-    -webkit-transform: translate(-50%, -50%) translateZ(0);
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
     will-change: auto;
+}
+
+/* Специальные стили для OBS - применяются только в OBS */
+@media (prefers-color-scheme: no-preference) {
+    body {
+        background: transparent !important;
+    }
+}
+
+/* Стили для OBS Browser Source */
+.obs-browser-source {
+    background: transparent !important;
+}
+
+/* Принудительно прозрачный фон для OBS */
+body.obs-mode {
+    background: transparent !important;
 }
 
 /* Адаптивность для разных размеров в OBS */
