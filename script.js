@@ -1,6 +1,5 @@
 class MeetingTimer {
     constructor() {
-        console.log('MeetingTimer конструктор вызван');
         this.currentMeeting = null;
         this.nextMeeting = null;
         this.isConnected = false;
@@ -233,9 +232,7 @@ class MeetingTimer {
     }
     
     startTimer() {
-        console.log('Запускаем таймер...');
         this.updateInterval = setInterval(() => {
-            console.log('Обновление таймера:', new Date().toLocaleTimeString());
             this.updateTimers();
         }, 1000);
         
@@ -311,7 +308,6 @@ class MeetingTimer {
     
     updateTimers() {
         const now = new Date();
-        console.log('updateTimers вызван, текущая встреча:', this.currentMeeting ? this.currentMeeting.title : 'нет');
         
         // Обновляем таймер текущей встречи
         if (this.currentMeeting) {
@@ -415,7 +411,7 @@ class MeetingTimer {
         const seconds = totalSeconds % 60;
         
         if (hours > 0) {
-            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         } else {
             return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
