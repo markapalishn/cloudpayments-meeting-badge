@@ -36,15 +36,85 @@ const CONFIG = {
 ### Добавление Browser Source
 1. В OBS добавьте новый источник "Browser Source"
 2. **URL:** `https://ваш-сайт.com/meeting-badge/`
-3. **Ширина:** `666px`
-4. **Высота:** `170px`
+3. **Ширина:** `686px`
+4. **Высота:** `350px`
 5. **Обновить браузер при активации сцены:** ✅
 6. **Остановить источник когда не виден:** ❌
 
 ### Рекомендуемые настройки
 - **FPS:** 30
-- **CSS:** оставьте пустым
+- **CSS:** вставьте код ниже
 - **JavaScript:** оставьте пустым
+
+### CSS код для OBS
+Скопируйте и вставьте этот код в поле **CSS** в настройках Browser Source:
+
+```css
+/* Принудительно устанавливаем точные размеры */
+html, body {
+    width: 686px !important;
+    height: 350px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Убираем любые отступы и скролл */
+* {
+    box-sizing: border-box !important;
+}
+
+/* Фиксируем размеры основного контейнера */
+.meeting-badge {
+    width: 626px !important;
+    height: 130px !important;
+    margin: 0 !important;
+}
+
+/* Фиксируем размеры логотипа компании */
+.company-logo {
+    width: 626px !important;
+    height: 130px !important;
+    margin: 0 !important;
+}
+
+/* Фиксируем размеры бейджей сотрудника */
+.employee-info {
+    width: 626px !important;
+    margin: 30px 0 0 0 !important;
+}
+
+/* Фиксируем размеры зон ответственности */
+.responsibility-areas {
+    width: 626px !important;
+    margin: 30px 0 0 0 !important;
+}
+```
+
+### Дополнительные CSS настройки (опционально)
+Если нужно убрать тени и эффекты для стабильности:
+
+```css
+/* Убираем все тени и эффекты */
+* {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+    animation: none !important;
+    transition: none !important;
+}
+
+/* Скрываем скролл полностью */
+html, body {
+    overflow: hidden !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+    display: none !important;
+}
+```
 
 ## 🎨 Настройка внешнего вида
 
@@ -98,6 +168,25 @@ cloudpayments-meeting-badge/
 │   ├── svg/           # Иконки и логотипы
 │   └── fonts/         # Шрифты
 └── README.md          # Документация
+```
+
+## 📏 Размеры бейджа
+
+### Основные размеры:
+- **Общий размер:** `686×350px`
+- **Бейдж с таймером:** `626×130px`
+- **Бейдж должности + ФИО:** `626×80px`
+- **Зоны ответственности:** `626×40px`
+
+### Структура:
+```
+┌─────────────────────────────────────┐ 686px
+│  Бейдж с таймером (626×130px)      │
+├─────────────────────────────────────┤
+│  PM    │  Апалишин Марк            │ 80px
+├─────────────────────────────────────┤
+│  Alt-методы, реклама               │ 40px
+└─────────────────────────────────────┘
 ```
 
 ## 🐛 Отладка
