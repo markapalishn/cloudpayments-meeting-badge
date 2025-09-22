@@ -184,6 +184,12 @@ class MeetingTimer {
                 currentEvent = {};
                 logger.debug('Начинаем новое событие');
             } else if (line === 'END:VEVENT' && currentEvent) {
+                // Если нет SUMMARY, создаем название по умолчанию
+                if (!currentEvent.summary) {
+                    currentEvent.summary = 'Встреча';
+                    logger.info('📝 Создано название по умолчанию: "Встреча"');
+                }
+                
                 logger.info('🔍 Проверяем событие:', {
                     summary: currentEvent.summary || 'ОТСУТСТВУЕТ',
                     start: currentEvent.start || 'ОТСУТСТВУЕТ',
@@ -220,6 +226,13 @@ class MeetingTimer {
                     case 'SUMMARY':
                         currentEvent.summary = value;
                         logger.info('📝 Найден SUMMARY:', value);
+                        break;
+                    case 'TITLE':
+                        // Альтернативное поле для названия
+                        if (!currentEvent.summary) {
+                            currentEvent.summary = value;
+                            logger.info('📝 Найден TITLE (используем как SUMMARY):', value);
+                        }
                         break;
                     case 'DTSTART':
                         currentEvent.start = this.parseICalDate(line); // Передаем всю строку для правильного парсинга
