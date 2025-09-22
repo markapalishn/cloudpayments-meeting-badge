@@ -14,7 +14,11 @@ class MeetingTimer {
         this.elements = {
             currentTimer: document.getElementById('currentTimer'),
             nextCountdown: document.getElementById('nextCountdown'),
-            meetingTitle: document.querySelector('.meeting-title')
+            meetingTitle: document.querySelector('.meeting-title'),
+            employeeInfo: document.getElementById('employeeInfo'),
+            positionBadge: document.getElementById('positionBadge'),
+            nameBadge: document.getElementById('nameBadge'),
+            responsibilityAreas: document.getElementById('responsibilityAreas')
         };
     }
     
@@ -22,6 +26,9 @@ class MeetingTimer {
         // Показываем логотип компании когда встреч нет
         document.getElementById('meetingBadge').style.display = 'none';
         document.getElementById('companyLogo').style.display = 'flex';
+        // Скрываем информацию о сотруднике
+        this.elements.employeeInfo.style.display = 'none';
+        this.elements.responsibilityAreas.style.display = 'none';
         console.log('Нет встреч - показываем логотип компании');
     }
     
@@ -29,6 +36,9 @@ class MeetingTimer {
         // Показываем бейдж с информацией о встречах
         document.getElementById('meetingBadge').style.display = 'flex';
         document.getElementById('companyLogo').style.display = 'none';
+        // Показываем информацию о сотруднике
+        this.elements.employeeInfo.style.display = 'flex';
+        this.elements.responsibilityAreas.style.display = 'block';
         console.log('Есть встречи - показываем бейдж');
     }
     
@@ -225,10 +235,26 @@ class MeetingTimer {
         // Инициализируем градиент и таймеры
         this.updateTimers();
         
+        // Обновляем информацию о сотруднике
+        this.updateEmployeeInfo();
+        
         // Принудительно обновляем градиент
         setTimeout(() => {
             this.updateTimers();
         }, 100);
+    }
+    
+    updateEmployeeInfo() {
+        // Обновляем информацию о сотруднике из конфигурации
+        if (this.elements.positionBadge) {
+            this.elements.positionBadge.textContent = window.CONFIG.EMPLOYEE_POSITION;
+        }
+        if (this.elements.nameBadge) {
+            this.elements.nameBadge.textContent = window.CONFIG.EMPLOYEE_NAME;
+        }
+        if (this.elements.responsibilityAreas) {
+            this.elements.responsibilityAreas.textContent = window.CONFIG.RESPONSIBILITY_AREAS;
+        }
     }
     
     startTimer() {

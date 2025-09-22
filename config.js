@@ -29,7 +29,18 @@ const CONFIG = {
     // Размеры
     BADGE_WIDTH: 666,
     BADGE_HEIGHT: 170,
-    BORDER_RADIUS: 30
+    BORDER_RADIUS: 30,
+    
+    // Информация о сотруднике
+    EMPLOYEE_POSITION: 'PM',
+    EMPLOYEE_NAME: 'Апалишин Марк',
+    RESPONSIBILITY_AREAS: 'Alt-методы, реклама',
+    
+    // Настройки новых бейджей
+    BADGE_SPACING: 30,           // Отступ между бейджами
+    POSITION_FONT_SIZE: 40,      // Размер шрифта должности
+    NAME_FONT_SIZE: 40,          // Размер шрифта ФИО
+    RESPONSIBILITY_FONT_SIZE: 40 // Размер шрифта зон ответственности
 };
 
 // Экспортируем конфигурацию
