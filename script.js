@@ -196,7 +196,21 @@ class MeetingTimer {
                     end: currentEvent.end || 'ОТСУТСТВУЕТ'
                 });
                 
-                if (currentEvent.summary && currentEvent.start && currentEvent.end) {
+                // Проверяем каждое поле отдельно
+                const hasSummary = !!currentEvent.summary;
+                const hasStart = !!currentEvent.start;
+                const hasEnd = !!currentEvent.end;
+                
+                logger.info('🔍 Детальная проверка:', {
+                    hasSummary,
+                    hasStart, 
+                    hasEnd,
+                    summary: currentEvent.summary,
+                    start: currentEvent.start,
+                    end: currentEvent.end
+                });
+                
+                if (hasSummary && hasStart && hasEnd) {
                     logger.info('✅ Событие добавлено:', {
                         summary: currentEvent.summary,
                         start: currentEvent.start,
@@ -208,7 +222,14 @@ class MeetingTimer {
                         end: currentEvent.end
                     });
                 } else {
-                    logger.warn('❌ Событие пропущено - неполные данные:', currentEvent);
+                    logger.warn('❌ Событие пропущено - неполные данные:', {
+                        missing: {
+                            summary: !hasSummary,
+                            start: !hasStart,
+                            end: !hasEnd
+                        },
+                        event: currentEvent
+                    });
                 }
                 currentEvent = null;
             } else if (currentEvent) {
@@ -325,10 +346,10 @@ class MeetingTimer {
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
         
-        logger.debug('Обрабатываем события календаря:', events.length);
-        logger.debug('Текущее время:', now.toLocaleString());
-        logger.debug('Сегодня:', today.toLocaleDateString());
-        logger.debug('Завтра:', tomorrow.toLocaleDateString());
+        logger.info('📅 Обрабатываем события календаря:', events.length);
+        logger.info('🕐 Текущее время:', now.toLocaleString());
+        logger.info('📅 Сегодня:', today.toLocaleDateString());
+        logger.info('📅 Завтра:', tomorrow.toLocaleDateString());
         
         // Фильтруем события на сегодня и завтра
         const relevantEvents = events.filter(event => {
@@ -336,23 +357,47 @@ class MeetingTimer {
             return eventDate >= today && eventDate < tomorrow;
         });
         
-        logger.debug('Релевантных событий:', relevantEvents.length);
+        logger.info('📅 Релевантных событий:', relevantEvents.length);
+        
+        // Показываем все релевантные события
+        relevantEvents.forEach((event, index) => {
+            logger.info(`📅 Событие ${index + 1}:`, {
+                summary: event.summary,
+                start: event.start.toLocaleString(),
+                end: event.end.toLocaleString(),
+                isNow: event.start <= now && event.end > now,
+                isFuture: event.start > now
+            });
+        });
         
         // Сортируем по времени начала
         relevantEvents.sort((a, b) => a.start - b.start);
         
         // Находим текущую встречу
         this.currentMeeting = relevantEvents.find(event => {
-            return event.start <= now && event.end > now;
+            const isCurrent = event.start <= now && event.end > now;
+            logger.info(`🔍 Проверяем встречу "${event.summary}":`, {
+                start: event.start.toLocaleString(),
+                end: event.end.toLocaleString(),
+                now: now.toLocaleString(),
+                isCurrent
+            });
+            return isCurrent;
         });
         
         // Находим следующую встречу
         this.nextMeeting = relevantEvents.find(event => {
-            return event.start > now;
+            const isFuture = event.start > now;
+            logger.info(`🔍 Проверяем будущую встречу "${event.summary}":`, {
+                start: event.start.toLocaleString(),
+                now: now.toLocaleString(),
+                isFuture
+            });
+            return isFuture;
         });
         
-        logger.debug('Текущая встреча:', this.currentMeeting ? this.currentMeeting.summary : 'нет');
-        logger.debug('Следующая встреча:', this.nextMeeting ? this.nextMeeting.summary : 'нет');
+        logger.info('✅ Текущая встреча:', this.currentMeeting ? this.currentMeeting.summary : 'нет');
+        logger.info('⏭️ Следующая встреча:', this.nextMeeting ? this.nextMeeting.summary : 'нет');
         
         // Если нет ни текущей, ни следующей встречи - показываем логотип компании
         if (!this.currentMeeting && !this.nextMeeting) {
