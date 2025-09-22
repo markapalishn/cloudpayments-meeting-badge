@@ -2,6 +2,8 @@
     --primary-color: #0037C0;
     --warning-color: #FF9800;
     --overdue-color: #f44336;
+    --chip-padding-vertical: 36px;
+    --chip-padding-horizontal: 48px;
 }
 
 @font-face {
@@ -216,7 +218,7 @@ body {
     font-family: 'Stolzl', sans-serif;
     font-weight: 500;
     font-size: 40px;
-    padding: 15px 25px;
+    padding: var(--chip-padding-vertical, 36px) var(--chip-padding-horizontal, 48px);
     border-radius: 60px 24px 24px 60px; /* 60px слева, 24px справа */
     white-space: nowrap;
     display: flex;
@@ -231,7 +233,7 @@ body {
     font-family: 'Stolzl', sans-serif;
     font-weight: 500;
     font-size: 40px;
-    padding: 15px 25px;
+    padding: var(--chip-padding-vertical, 36px) var(--chip-padding-horizontal, 48px);
     border-radius: 24px 60px 60px 24px; /* 24px слева, 60px справа */
     white-space: nowrap;
     display: flex;
@@ -242,7 +244,7 @@ body {
 
 /* Стили для зон ответственности */
 .responsibility-areas {
-    color: #808080;
+    color: white; /* Белый цвет вместо серого */
     font-family: 'Stolzl Book', sans-serif;
     font-weight: 350;
     font-size: 40px;
