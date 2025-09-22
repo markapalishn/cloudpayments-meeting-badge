@@ -90,21 +90,52 @@ class MeetingTimer {
         return window.CONFIG.CALENDAR_URL;
     }
     
+    async fetchWithProxy(url) {
+        // Список proxy сервисов для обхода CORS
+        const proxies = [
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            `https://thingproxy.freeboard.io/fetch/${url}`,
+            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+            `https://cors-anywhere.herokuapp.com/${url}`
+        ];
+        
+        for (let i = 0; i < proxies.length; i++) {
+            try {
+                logger.debug(`Пробуем proxy ${i + 1}/${proxies.length}:`, proxies[i]);
+                const response = await fetch(proxies[i]);
+                if (response.ok) {
+                    logger.debug(`Proxy ${i + 1} успешно загрузил данные`);
+                    return response;
+                }
+            } catch (error) {
+                logger.debug(`Proxy ${i + 1} не сработал:`, error.message);
+                if (i === proxies.length - 1) {
+                    throw new Error(`Все proxy сервисы недоступны. Последняя ошибка: ${error.message}`);
+                }
+            }
+        }
+    }
+    
     async loadFromPublicCalendar(calendarUrl) {
         try {
             logger.debug('Загружаем календарь из:', calendarUrl);
             
-            // Прямой запрос к Google Calendar (работает с HTTPS)
+            // Используем proxy для обхода CORS ограничений Google Calendar
             const startTime = Date.now();
             let response;
             
-            try {
-                response = await fetch(calendarUrl);
-            } catch (corsError) {
-                // Если CORS блокирует (локальное тестирование), используем proxy
-                logger.debug('CORS блокирует прямой запрос, используем proxy...');
-                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(calendarUrl)}`;
-                response = await fetch(proxyUrl);
+            // Проверяем, является ли это Google Calendar URL
+            if (calendarUrl.includes('calendar.google.com')) {
+                logger.debug('Используем proxy для Google Calendar...');
+                response = await this.fetchWithProxy(calendarUrl);
+            } else {
+                // Для других календарей пробуем прямой запрос
+                try {
+                    response = await fetch(calendarUrl);
+                } catch (corsError) {
+                    logger.debug('CORS блокирует прямой запрос, используем proxy...');
+                    response = await this.fetchWithProxy(calendarUrl);
+                }
             }
             
             const loadTime = Date.now() - startTime;
