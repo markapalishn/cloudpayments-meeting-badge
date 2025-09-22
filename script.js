@@ -1,3 +1,33 @@
+/**
+ * Система логирования для управления выводом отладочной информации
+ */
+class Logger {
+    constructor() {
+        this.isDebugEnabled = window.CONFIG && window.CONFIG.DEBUG;
+    }
+    
+    debug(...args) {
+        if (this.isDebugEnabled) {
+            console.log('[DEBUG]', ...args);
+        }
+    }
+    
+    info(...args) {
+        console.log('[INFO]', ...args);
+    }
+    
+    warn(...args) {
+        console.warn('[WARN]', ...args);
+    }
+    
+    error(...args) {
+        console.error('[ERROR]', ...args);
+    }
+}
+
+// Создаем глобальный экземпляр логгера
+const logger = new Logger();
+
 class MeetingTimer {
     constructor() {
         this.currentMeeting = null;
@@ -31,7 +61,7 @@ class MeetingTimer {
         // Показываем информацию о сотруднике всегда
         this.elements.employeeInfo.style.display = 'flex';
         this.elements.responsibilityAreas.style.display = 'block';
-        console.log('Нет встреч - показываем логотип компании и информацию о сотруднике');
+        logger.info('Нет встреч - показываем логотип компании и информацию о сотруднике');
     }
     
     showBadge() {
@@ -41,7 +71,7 @@ class MeetingTimer {
         // Показываем информацию о сотруднике
         this.elements.employeeInfo.style.display = 'flex';
         this.elements.responsibilityAreas.style.display = 'block';
-        console.log('Есть встречи - показываем бейдж');
+        logger.info('Есть встречи - показываем бейдж');
     }
     
     async loadMeetings() {
@@ -50,7 +80,7 @@ class MeetingTimer {
             const calendarUrl = this.getGoogleCalendarUrl();
             await this.loadFromPublicCalendar(calendarUrl);
         } catch (error) {
-            console.error('Ошибка загрузки встреч:', error);
+            logger.error('Ошибка загрузки встреч:', error);
             this.hideBadge();
         }
     }
@@ -62,7 +92,7 @@ class MeetingTimer {
     
     async loadFromPublicCalendar(calendarUrl) {
         try {
-            console.log('Загружаем календарь из:', calendarUrl);
+            logger.debug('Загружаем календарь из:', calendarUrl);
             
             // Прямой запрос к Google Calendar (работает с HTTPS)
             const startTime = Date.now();
@@ -72,35 +102,35 @@ class MeetingTimer {
                 response = await fetch(calendarUrl);
             } catch (corsError) {
                 // Если CORS блокирует (локальное тестирование), используем proxy
-                console.log('CORS блокирует прямой запрос, используем proxy...');
+                logger.debug('CORS блокирует прямой запрос, используем proxy...');
                 const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(calendarUrl)}`;
                 response = await fetch(proxyUrl);
             }
             
             const loadTime = Date.now() - startTime;
-            console.log(`Запрос выполнен за ${loadTime}ms`);
+            logger.debug(`Запрос выполнен за ${loadTime}ms`);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const icalData = await response.text();
-            console.log('iCal данные загружены, размер:', icalData.length, 'символов');
+            logger.debug('iCal данные загружены, размер:', icalData.length, 'символов');
             
             // Проверяем, не получили ли мы HTML ошибку вместо iCal
             if (icalData.includes('<html') || icalData.includes('Error 404')) {
-                console.error('Получена HTML ошибка вместо iCal данных. Календарь не публичный или не существует.');
+                logger.error('Получена HTML ошибка вместо iCal данных. Календарь не публичный или не существует.');
                 this.hideBadge();
                 return;
             }
             
             const events = this.parseICalData(icalData);
-            console.log('События распарсены:', events.length);
+            logger.debug('События распарсены:', events.length);
             
             this.processCalendarEvents(events);
             
         } catch (error) {
-            console.error('Ошибка загрузки календаря:', error);
+            logger.error('Ошибка загрузки календаря:', error);
             this.hideBadge();
         }
     }
@@ -110,17 +140,17 @@ class MeetingTimer {
         const lines = icalData.split('\n');
         let currentEvent = null;
         
-        console.log('Начинаем парсинг iCal данных, строк:', lines.length);
+        logger.debug('Начинаем парсинг iCal данных, строк:', lines.length);
         
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
             
             if (line === 'BEGIN:VEVENT') {
                 currentEvent = {};
-                console.log('Начинаем новое событие');
+                logger.debug('Начинаем новое событие');
             } else if (line === 'END:VEVENT' && currentEvent) {
                 if (currentEvent.summary && currentEvent.start && currentEvent.end) {
-                    console.log('Добавляем событие:', {
+                    logger.debug('Добавляем событие:', {
                         summary: currentEvent.summary,
                         start: currentEvent.start,
                         end: currentEvent.end
@@ -131,7 +161,7 @@ class MeetingTimer {
                         end: currentEvent.end
                     });
                 } else {
-                    console.log('Событие пропущено - неполные данные:', currentEvent);
+                    logger.warn('Событие пропущено - неполные данные:', currentEvent);
                 }
                 currentEvent = null;
             } else if (currentEvent) {
@@ -166,7 +196,7 @@ class MeetingTimer {
     }
     
     parseICalDate(dateString) {
-        console.log('Парсим дату:', dateString);
+        logger.debug('Парсим дату:', dateString);
         
         // Парсим дату в формате iCal
         if (dateString.includes('TZID=Europe/Moscow:')) {
@@ -180,9 +210,9 @@ class MeetingTimer {
             const second = datePart.substring(13, 15);
             
             const dateStr = `${year}-${month}-${day}T${hour}:${minute}:${second}+03:00`;
-            console.log('Создаем дату (Moscow):', dateStr);
+            logger.debug('Создаем дату (Moscow):', dateStr);
             const result = new Date(dateStr);
-            console.log('Результат:', result);
+            logger.debug('Результат:', result);
             return result;
         } else if (dateString.endsWith('Z')) {
             // Формат UTC: 20250921T180000Z
@@ -194,9 +224,9 @@ class MeetingTimer {
             const second = dateString.substring(13, 15);
             
             const dateStr = `${year}-${month}-${day}T${hour}:${minute}:${second}Z`;
-            console.log('Создаем дату (UTC):', dateStr);
+            logger.debug('Создаем дату (UTC):', dateStr);
             const result = new Date(dateStr);
-            console.log('Результат:', result);
+            logger.debug('Результат:', result);
             return result;
         } else {
             // Простой формат: 20250922T104500
@@ -208,9 +238,9 @@ class MeetingTimer {
             const second = dateString.substring(13, 15);
             
             const dateStr = `${year}-${month}-${day}T${hour}:${minute}:${second}+03:00`;
-            console.log('Создаем дату (простой):', dateStr);
+            logger.debug('Создаем дату (простой):', dateStr);
             const result = new Date(dateStr);
-            console.log('Результат:', result);
+            logger.debug('Результат:', result);
             return result;
         }
     }
@@ -220,10 +250,10 @@ class MeetingTimer {
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
         
-        console.log('Обрабатываем события календаря:', events.length);
-        console.log('Текущее время:', now.toLocaleString());
-        console.log('Сегодня:', today.toLocaleDateString());
-        console.log('Завтра:', tomorrow.toLocaleDateString());
+        logger.debug('Обрабатываем события календаря:', events.length);
+        logger.debug('Текущее время:', now.toLocaleString());
+        logger.debug('Сегодня:', today.toLocaleDateString());
+        logger.debug('Завтра:', tomorrow.toLocaleDateString());
         
         // Фильтруем события на сегодня и завтра
         const relevantEvents = events.filter(event => {
@@ -231,7 +261,7 @@ class MeetingTimer {
             return eventDate >= today && eventDate < tomorrow;
         });
         
-        console.log('Релевантных событий:', relevantEvents.length);
+        logger.debug('Релевантных событий:', relevantEvents.length);
         
         // Сортируем по времени начала
         relevantEvents.sort((a, b) => a.start - b.start);
@@ -246,19 +276,19 @@ class MeetingTimer {
             return event.start > now;
         });
         
-        console.log('Текущая встреча:', this.currentMeeting ? this.currentMeeting.summary : 'нет');
-        console.log('Следующая встреча:', this.nextMeeting ? this.nextMeeting.summary : 'нет');
+        logger.debug('Текущая встреча:', this.currentMeeting ? this.currentMeeting.summary : 'нет');
+        logger.debug('Следующая встреча:', this.nextMeeting ? this.nextMeeting.summary : 'нет');
         
         // Если нет ни текущей, ни следующей встречи - показываем логотип компании
         if (!this.currentMeeting && !this.nextMeeting) {
-            console.log('Нет встреч - показываем логотип компании');
+            logger.info('Нет встреч - показываем логотип компании');
             this.hideBadge();
             // Обновляем информацию о сотруднике даже когда нет встреч
             this.updateEmployeeInfo();
             return;
         }
         
-        console.log('Есть встречи - показываем бейдж');
+        logger.info('Есть встречи - показываем бейдж');
         this.updateDisplay();
     }
     
@@ -304,20 +334,20 @@ class MeetingTimer {
         
         // Обновление данных о встречах каждые 30 секунд
         this.calendarUpdateInterval = setInterval(() => {
-            console.log('Обновляем данные календаря...');
+            logger.debug('Обновляем данные календаря...');
             this.loadMeetings();
         }, window.CONFIG.CALENDAR_INTERVAL);
         
         // Принудительное обновление для OBS каждые 30 секунд
         this.obsRefreshInterval = setInterval(() => {
-            console.log('Принудительное обновление для OBS...');
+            logger.debug('Принудительное обновление для OBS...');
             this.forceOBSRefresh();
         }, window.CONFIG.OBS_REFRESH_INTERVAL);
         
         // Обновление только таймера каждые 30 секунд (если включено)
         if (window.CONFIG.EMPLOYEE_INFO_AUTO_UPDATE) {
             this.employeeInfoUpdateInterval = setInterval(() => {
-                console.log('Обновляем информацию о сотруднике...');
+                logger.debug('Обновляем информацию о сотруднике...');
                 this.updateEmployeeInfo();
             }, window.CONFIG.CALENDAR_INTERVAL);
         }
@@ -344,7 +374,7 @@ class MeetingTimer {
     
     // Принудительное обновление календаря
     refreshCalendar() {
-        console.log('Принудительное обновление календаря...');
+        logger.info('Принудительное обновление календаря...');
         this.loadMeetings();
     }
     
@@ -356,11 +386,11 @@ class MeetingTimer {
         
         // Обновляем только если прошло больше 10 секунд с последнего обновления
         if (timeSinceUpdate > 10000) {
-            console.log('Умное обновление календаря...');
+            logger.debug('Умное обновление календаря...');
             this.lastCalendarUpdate = now;
             this.loadMeetings();
         } else {
-            console.log('Пропускаем обновление - слишком рано');
+            logger.debug('Пропускаем обновление - слишком рано');
         }
     }
     
@@ -381,7 +411,7 @@ class MeetingTimer {
             }, 10);
         }
         
-        console.log('OBS принудительно обновлен');
+        logger.debug('OBS принудительно обновлен');
     }
     
     updateTimers() {
@@ -466,7 +496,7 @@ class MeetingTimer {
                 const gradient = `linear-gradient(90deg, #0037C0 0%, #0037C0 ${fillPercentage}%, transparent ${fillPercentage}%, transparent 100%)`;
                 meetingBadge.style.background = gradient;
             }
-            console.log(`Заполнение обновлено: progress=${progress.toFixed(2)}, fill=${fillPercentage.toFixed(1)}%`);
+            logger.debug(`Заполнение обновлено: progress=${progress.toFixed(2)}, fill=${fillPercentage.toFixed(1)}%`);
         }
     }
     
@@ -579,7 +609,7 @@ window.addEventListener('message', (event) => {
 // Обновление при фокусе на вкладку (когда пользователь возвращается)
 window.addEventListener('focus', () => {
     if (meetingTimer) {
-        console.log('Вкладка получила фокус - обновляем календарь');
+        logger.debug('Вкладка получила фокус - обновляем календарь');
         meetingTimer.smartRefresh();
     }
 });
@@ -587,7 +617,7 @@ window.addEventListener('focus', () => {
 // Обновление при видимости страницы (когда пользователь переключается на вкладку)
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden && meetingTimer) {
-        console.log('Страница стала видимой - обновляем календарь');
+        logger.debug('Страница стала видимой - обновляем календарь');
         meetingTimer.smartRefresh();
     }
 });
