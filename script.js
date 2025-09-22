@@ -242,11 +242,11 @@ class MeetingTimer {
             this.loadMeetings();
         }, 30 * 1000); // 30 секунд
         
-        // Принудительное обновление для OBS каждые 5 минут
+        // Принудительное обновление для OBS каждые 30 секунд
         this.obsRefreshInterval = setInterval(() => {
             console.log('Принудительное обновление для OBS...');
             this.forceOBSRefresh();
-        }, 5 * 60 * 1000); // 5 минут
+        }, 30 * 1000); // 30 секунд
     }
     
     stopTimer() {
