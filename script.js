@@ -235,7 +235,7 @@ class MeetingTimer {
         // Инициализируем градиент и таймеры
         this.updateTimers();
         
-        // Обновляем информацию о сотруднике
+        // Обновляем информацию о сотруднике только при загрузке
         this.updateEmployeeInfo();
         
         // Принудительно обновляем градиент
@@ -257,22 +257,36 @@ class MeetingTimer {
         }
     }
     
+    updateTimerOnly() {
+        // Обновляем только таймеры, без информации о сотруднике
+        this.updateTimers();
+    }
+    
     startTimer() {
+        // Обновление таймера каждую секунду
         this.updateInterval = setInterval(() => {
             this.updateTimers();
         }, window.CONFIG.TIMER_INTERVAL);
         
-        // Обновляем данные о встречах
+        // Обновление данных о встречах каждые 30 секунд
         this.calendarUpdateInterval = setInterval(() => {
             console.log('Обновляем данные календаря...');
             this.loadMeetings();
         }, window.CONFIG.CALENDAR_INTERVAL);
         
-        // Принудительное обновление для OBS
+        // Принудительное обновление для OBS каждые 30 секунд
         this.obsRefreshInterval = setInterval(() => {
             console.log('Принудительное обновление для OBS...');
             this.forceOBSRefresh();
         }, window.CONFIG.OBS_REFRESH_INTERVAL);
+        
+        // Обновление только таймера каждые 30 секунд (если включено)
+        if (window.CONFIG.EMPLOYEE_INFO_AUTO_UPDATE) {
+            this.employeeInfoUpdateInterval = setInterval(() => {
+                console.log('Обновляем информацию о сотруднике...');
+                this.updateEmployeeInfo();
+            }, window.CONFIG.CALENDAR_INTERVAL);
+        }
     }
     
     stopTimer() {
@@ -287,6 +301,10 @@ class MeetingTimer {
         if (this.obsRefreshInterval) {
             clearInterval(this.obsRefreshInterval);
             this.obsRefreshInterval = null;
+        }
+        if (this.employeeInfoUpdateInterval) {
+            clearInterval(this.employeeInfoUpdateInterval);
+            this.employeeInfoUpdateInterval = null;
         }
     }
     
