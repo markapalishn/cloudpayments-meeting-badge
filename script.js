@@ -433,21 +433,6 @@ class MeetingTimer {
         this.loadMeetings();
     }
     
-    // Умное обновление - проверяет изменения перед обновлением
-    smartRefresh() {
-        const now = new Date();
-        const lastUpdate = this.lastCalendarUpdate || 0;
-        const timeSinceUpdate = now - lastUpdate;
-        
-        // Обновляем только если прошло больше 10 секунд с последнего обновления
-        if (timeSinceUpdate > 10000) {
-            logger.debug('Умное обновление календаря...');
-            this.lastCalendarUpdate = now;
-            this.loadMeetings();
-        } else {
-            logger.debug('Пропускаем обновление - слишком рано');
-        }
-    }
     
     // Принудительное обновление для OBS
     forceOBSRefresh() {
@@ -661,21 +646,6 @@ window.addEventListener('message', (event) => {
     }
 });
 
-// Обновление при фокусе на вкладку (когда пользователь возвращается)
-window.addEventListener('focus', () => {
-    if (meetingTimer) {
-        logger.debug('Вкладка получила фокус - обновляем календарь');
-        meetingTimer.smartRefresh();
-    }
-});
-
-// Обновление при видимости страницы (когда пользователь переключается на вкладку)
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && meetingTimer) {
-        logger.debug('Страница стала видимой - обновляем календарь');
-        meetingTimer.smartRefresh();
-    }
-});
 
 // Обработка горячих клавиш для обновления
 document.addEventListener('keydown', (event) => {
@@ -702,11 +672,6 @@ window.refreshCalendar = () => {
     }
 };
 
-window.smartRefresh = () => {
-    if (meetingTimer) {
-        meetingTimer.smartRefresh();
-    }
-};
 
 window.forceOBSRefresh = () => {
     if (meetingTimer) {
