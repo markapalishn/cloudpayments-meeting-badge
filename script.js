@@ -241,6 +241,12 @@ class MeetingTimer {
             console.log('Обновляем данные календаря...');
             this.loadMeetings();
         }, 30 * 1000); // 30 секунд
+        
+        // Принудительное обновление для OBS каждые 5 минут
+        this.obsRefreshInterval = setInterval(() => {
+            console.log('Принудительное обновление для OBS...');
+            this.forceOBSRefresh();
+        }, 5 * 60 * 1000); // 5 минут
     }
     
     stopTimer() {
@@ -251,6 +257,10 @@ class MeetingTimer {
         if (this.calendarUpdateInterval) {
             clearInterval(this.calendarUpdateInterval);
             this.calendarUpdateInterval = null;
+        }
+        if (this.obsRefreshInterval) {
+            clearInterval(this.obsRefreshInterval);
+            this.obsRefreshInterval = null;
         }
     }
     
@@ -274,6 +284,26 @@ class MeetingTimer {
         } else {
             console.log('Пропускаем обновление - слишком рано');
         }
+    }
+    
+    // Принудительное обновление для OBS
+    forceOBSRefresh() {
+        // Обновляем календарь
+        this.loadMeetings();
+        
+        // Принудительно обновляем отображение
+        this.updateDisplay();
+        
+        // Добавляем небольшое изменение в DOM для принудительного обновления
+        const badge = document.getElementById('meetingBadge');
+        if (badge) {
+            badge.style.transform = 'scale(1.001)';
+            setTimeout(() => {
+                badge.style.transform = 'scale(1)';
+            }, 10);
+        }
+        
+        console.log('OBS принудительно обновлен');
     }
     
     updateTimers() {
@@ -455,6 +485,12 @@ window.refreshCalendar = () => {
 window.smartRefresh = () => {
     if (meetingTimer) {
         meetingTimer.smartRefresh();
+    }
+};
+
+window.forceOBSRefresh = () => {
+    if (meetingTimer) {
+        meetingTimer.forceOBSRefresh();
     }
 };
 

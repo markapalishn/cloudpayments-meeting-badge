@@ -48,6 +48,7 @@ body {
     justify-content: space-between;
     box-sizing: border-box;
     padding: 0 40px;
+    transition: transform 0.1s ease; /* Плавная анимация для OBS обновления */
 }
 
 .meeting-badge::before {
