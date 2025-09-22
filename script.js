@@ -527,15 +527,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        // Определяем, запущено ли в OBS с более строгими проверками
-        const isOBS = detectOBSEnvironment();
-        
-        if (isOBS) {
-            document.body.classList.add('obs-mode');
-        }
-    });
-    
     meetingTimer = new MeetingTimer();
 });
 
