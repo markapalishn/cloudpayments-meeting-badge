@@ -101,14 +101,16 @@ class MeetingTimer {
         
         for (let i = 0; i < proxies.length; i++) {
             try {
-                logger.debug(`Пробуем proxy ${i + 1}/${proxies.length}:`, proxies[i]);
+                logger.info(`🔄 Пробуем proxy ${i + 1}/${proxies.length}:`, proxies[i]);
                 const response = await fetch(proxies[i]);
                 if (response.ok) {
-                    logger.debug(`Proxy ${i + 1} успешно загрузил данные`);
+                    logger.info(`✅ Proxy ${i + 1} успешно загрузил данные`);
                     return response;
+                } else {
+                    logger.warn(`❌ Proxy ${i + 1} вернул статус ${response.status}`);
                 }
             } catch (error) {
-                logger.debug(`Proxy ${i + 1} не сработал:`, error.message);
+                logger.warn(`❌ Proxy ${i + 1} не сработал:`, error.message);
                 if (i === proxies.length - 1) {
                     throw new Error(`Все proxy сервисы недоступны. Последняя ошибка: ${error.message}`);
                 }
@@ -125,10 +127,12 @@ class MeetingTimer {
             let response;
             
             // Проверяем, является ли это Google Calendar URL
+            logger.info('🔍 Проверяем URL календаря:', calendarUrl);
             if (calendarUrl.includes('calendar.google.com')) {
-                logger.debug('Используем proxy для Google Calendar...');
+                logger.info('🔧 ОБХОД CORS: Используем proxy для Google Calendar...');
                 response = await this.fetchWithProxy(calendarUrl);
             } else {
+                logger.info('🔧 Прямой запрос для не-Google календаря...');
                 // Для других календарей пробуем прямой запрос
                 try {
                     response = await fetch(calendarUrl);
