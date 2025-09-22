@@ -184,8 +184,20 @@ class MeetingTimer {
                 currentEvent = {};
                 logger.debug('Начинаем новое событие');
             } else if (line === 'END:VEVENT' && currentEvent) {
+                // Если нет SUMMARY, создаем название по умолчанию
+                if (!currentEvent.summary) {
+                    currentEvent.summary = 'Встреча';
+                    logger.info('📝 Создано название по умолчанию: "Встреча"');
+                }
+                
+                logger.info('🔍 Проверяем событие:', {
+                    summary: currentEvent.summary || 'ОТСУТСТВУЕТ',
+                    start: currentEvent.start || 'ОТСУТСТВУЕТ',
+                    end: currentEvent.end || 'ОТСУТСТВУЕТ'
+                });
+                
                 if (currentEvent.summary && currentEvent.start && currentEvent.end) {
-                    logger.debug('Добавляем событие:', {
+                    logger.info('✅ Событие добавлено:', {
                         summary: currentEvent.summary,
                         start: currentEvent.start,
                         end: currentEvent.end
@@ -196,7 +208,7 @@ class MeetingTimer {
                         end: currentEvent.end
                     });
                 } else {
-                    logger.warn('Событие пропущено - неполные данные:', currentEvent);
+                    logger.warn('❌ Событие пропущено - неполные данные:', currentEvent);
                 }
                 currentEvent = null;
             } else if (currentEvent) {
@@ -213,6 +225,14 @@ class MeetingTimer {
                 switch (key) {
                     case 'SUMMARY':
                         currentEvent.summary = value;
+                        logger.info('📝 Найден SUMMARY:', value);
+                        break;
+                    case 'TITLE':
+                        // Альтернативное поле для названия
+                        if (!currentEvent.summary) {
+                            currentEvent.summary = value;
+                            logger.info('📝 Найден TITLE (используем как SUMMARY):', value);
+                        }
                         break;
                     case 'DTSTART':
                         currentEvent.start = this.parseICalDate(line); // Передаем всю строку для правильного парсинга
@@ -433,21 +453,6 @@ class MeetingTimer {
         this.loadMeetings();
     }
     
-    // Умное обновление - проверяет изменения перед обновлением
-    smartRefresh() {
-        const now = new Date();
-        const lastUpdate = this.lastCalendarUpdate || 0;
-        const timeSinceUpdate = now - lastUpdate;
-        
-        // Обновляем только если прошло больше 10 секунд с последнего обновления
-        if (timeSinceUpdate > 10000) {
-            logger.debug('Умное обновление календаря...');
-            this.lastCalendarUpdate = now;
-            this.loadMeetings();
-        } else {
-            logger.debug('Пропускаем обновление - слишком рано');
-        }
-    }
     
     // Принудительное обновление для OBS
     forceOBSRefresh() {
@@ -661,21 +666,6 @@ window.addEventListener('message', (event) => {
     }
 });
 
-// Обновление при фокусе на вкладку (когда пользователь возвращается)
-window.addEventListener('focus', () => {
-    if (meetingTimer) {
-        logger.debug('Вкладка получила фокус - обновляем календарь');
-        meetingTimer.smartRefresh();
-    }
-});
-
-// Обновление при видимости страницы (когда пользователь переключается на вкладку)
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && meetingTimer) {
-        logger.debug('Страница стала видимой - обновляем календарь');
-        meetingTimer.smartRefresh();
-    }
-});
 
 // Обработка горячих клавиш для обновления
 document.addEventListener('keydown', (event) => {
@@ -702,11 +692,6 @@ window.refreshCalendar = () => {
     }
 };
 
-window.smartRefresh = () => {
-    if (meetingTimer) {
-        meetingTimer.smartRefresh();
-    }
-};
 
 window.forceOBSRefresh = () => {
     if (meetingTimer) {
