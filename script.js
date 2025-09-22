@@ -110,33 +110,50 @@ class MeetingTimer {
         const lines = icalData.split('\n');
         let currentEvent = null;
         
+        console.log('Начинаем парсинг iCal данных, строк:', lines.length);
+        
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
             
             if (line === 'BEGIN:VEVENT') {
                 currentEvent = {};
+                console.log('Начинаем новое событие');
             } else if (line === 'END:VEVENT' && currentEvent) {
                 if (currentEvent.summary && currentEvent.start && currentEvent.end) {
+                    console.log('Добавляем событие:', {
+                        summary: currentEvent.summary,
+                        start: currentEvent.start,
+                        end: currentEvent.end
+                    });
                     events.push({
                         summary: currentEvent.summary,
                         start: currentEvent.start,
                         end: currentEvent.end
                     });
+                } else {
+                    console.log('Событие пропущено - неполные данные:', currentEvent);
                 }
                 currentEvent = null;
             } else if (currentEvent) {
-                const [key, ...valueParts] = line.split(':');
-                const value = valueParts.join(':');
+                // Обрабатываем строки с параметрами (например, DTSTART;TZID=Europe/Moscow:20250922T104500)
+                const colonIndex = line.indexOf(':');
+                if (colonIndex === -1) continue;
+                
+                const keyPart = line.substring(0, colonIndex);
+                const value = line.substring(colonIndex + 1);
+                
+                // Извлекаем основное имя ключа (до первого ;)
+                const key = keyPart.split(';')[0];
                 
                 switch (key) {
                     case 'SUMMARY':
                         currentEvent.summary = value;
                         break;
                     case 'DTSTART':
-                        currentEvent.start = this.parseICalDate(value);
+                        currentEvent.start = this.parseICalDate(line); // Передаем всю строку для правильного парсинга
                         break;
                     case 'DTEND':
-                        currentEvent.end = this.parseICalDate(value);
+                        currentEvent.end = this.parseICalDate(line); // Передаем всю строку для правильного парсинга
                         break;
                     case 'DESCRIPTION':
                         currentEvent.description = value;
@@ -149,6 +166,8 @@ class MeetingTimer {
     }
     
     parseICalDate(dateString) {
+        console.log('Парсим дату:', dateString);
+        
         // Парсим дату в формате iCal
         if (dateString.includes('TZID=Europe/Moscow:')) {
             // Формат с часовым поясом: DTSTART;TZID=Europe/Moscow:20250922T104500
@@ -160,8 +179,11 @@ class MeetingTimer {
             const minute = datePart.substring(11, 13);
             const second = datePart.substring(13, 15);
             
-            // Создаем дату в московском часовом поясе
-            return new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}+03:00`);
+            const dateStr = `${year}-${month}-${day}T${hour}:${minute}:${second}+03:00`;
+            console.log('Создаем дату (Moscow):', dateStr);
+            const result = new Date(dateStr);
+            console.log('Результат:', result);
+            return result;
         } else if (dateString.endsWith('Z')) {
             // Формат UTC: 20250921T180000Z
             const year = dateString.substring(0, 4);
@@ -171,7 +193,11 @@ class MeetingTimer {
             const minute = dateString.substring(11, 13);
             const second = dateString.substring(13, 15);
             
-            return new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`);
+            const dateStr = `${year}-${month}-${day}T${hour}:${minute}:${second}Z`;
+            console.log('Создаем дату (UTC):', dateStr);
+            const result = new Date(dateStr);
+            console.log('Результат:', result);
+            return result;
         } else {
             // Простой формат: 20250922T104500
             const year = dateString.substring(0, 4);
@@ -181,7 +207,11 @@ class MeetingTimer {
             const minute = dateString.substring(11, 13);
             const second = dateString.substring(13, 15);
             
-            return new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}+03:00`);
+            const dateStr = `${year}-${month}-${day}T${hour}:${minute}:${second}+03:00`;
+            console.log('Создаем дату (простой):', dateStr);
+            const result = new Date(dateStr);
+            console.log('Результат:', result);
+            return result;
         }
     }
     
