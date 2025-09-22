@@ -40,11 +40,7 @@ const CONFIG = {
     BADGE_SPACING: 30,           // Отступ между бейджами
     POSITION_FONT_SIZE: 40,      // Размер шрифта должности
     NAME_FONT_SIZE: 40,          // Размер шрифта ФИО
-    RESPONSIBILITY_FONT_SIZE: 40, // Размер шрифта зон ответственности
-    
-    // Отступы в чипсах
-    CHIP_PADDING_VERTICAL: 36,   // Отступ сверху/снизу в чипсах
-    CHIP_PADDING_HORIZONTAL: 48  // Отступ по бокам в чипсах
+    RESPONSIBILITY_FONT_SIZE: 40 // Размер шрифта зон ответственности
 };
 
 // Экспортируем конфигурацию
