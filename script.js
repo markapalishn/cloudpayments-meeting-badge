@@ -8,6 +8,8 @@ class MeetingTimer {
         this.initializeElements();
         this.startTimer();
         this.loadMeetings();
+        // Инициализируем информацию о сотруднике сразу
+        this.updateEmployeeInfo();
     }
     
     initializeElements() {
@@ -26,10 +28,10 @@ class MeetingTimer {
         // Показываем логотип компании когда встреч нет
         document.getElementById('meetingBadge').style.display = 'none';
         document.getElementById('companyLogo').style.display = 'flex';
-        // Скрываем информацию о сотруднике
-        this.elements.employeeInfo.style.display = 'none';
-        this.elements.responsibilityAreas.style.display = 'none';
-        console.log('Нет встреч - показываем логотип компании');
+        // Показываем информацию о сотруднике всегда
+        this.elements.employeeInfo.style.display = 'flex';
+        this.elements.responsibilityAreas.style.display = 'block';
+        console.log('Нет встреч - показываем логотип компании и информацию о сотруднике');
     }
     
     showBadge() {
@@ -221,6 +223,8 @@ class MeetingTimer {
         if (!this.currentMeeting && !this.nextMeeting) {
             console.log('Нет встреч - показываем логотип компании');
             this.hideBadge();
+            // Обновляем информацию о сотруднике даже когда нет встреч
+            this.updateEmployeeInfo();
             return;
         }
         
