@@ -231,7 +231,7 @@ class MeetingTimer {
     }
     
     parseICalDate(dateString) {
-        logger.debug('Парсим дату:', dateString);
+        logger.info('📅 Парсим дату:', dateString);
         
         // Парсим дату в формате iCal
         if (dateString.includes('TZID=Europe/Moscow:')) {
@@ -245,9 +245,9 @@ class MeetingTimer {
             const second = datePart.substring(13, 15);
             
             const dateStr = `${year}-${month}-${day}T${hour}:${minute}:${second}+03:00`;
-            logger.debug('Создаем дату (Moscow):', dateStr);
+            logger.info('📅 Создаем дату (Moscow):', dateStr);
             const result = new Date(dateStr);
-            logger.debug('Результат:', result);
+            logger.info('📅 Результат (Moscow):', result, 'Valid:', !isNaN(result.getTime()));
             return result;
         } else if (dateString.endsWith('Z')) {
             // Формат UTC: 20250921T180000Z
@@ -259,9 +259,9 @@ class MeetingTimer {
             const second = dateString.substring(13, 15);
             
             const dateStr = `${year}-${month}-${day}T${hour}:${minute}:${second}Z`;
-            logger.debug('Создаем дату (UTC):', dateStr);
+            logger.info('📅 Создаем дату (UTC):', dateStr);
             const result = new Date(dateStr);
-            logger.debug('Результат:', result);
+            logger.info('📅 Результат (UTC):', result, 'Valid:', !isNaN(result.getTime()));
             return result;
         } else {
             // Простой формат: 20250922T104500
@@ -273,10 +273,14 @@ class MeetingTimer {
             const second = dateString.substring(13, 15);
             
             const dateStr = `${year}-${month}-${day}T${hour}:${minute}:${second}+03:00`;
-            logger.debug('Создаем дату (простой):', dateStr);
+            logger.info('📅 Создаем дату (простой):', dateStr);
             const result = new Date(dateStr);
-            logger.debug('Результат:', result);
+            logger.info('📅 Результат (простой):', result, 'Valid:', !isNaN(result.getTime()));
             return result;
+        } else {
+            // Неизвестный формат даты
+            logger.warn('❌ Неизвестный формат даты:', dateString);
+            return new Date('Invalid Date');
         }
     }
     
