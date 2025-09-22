@@ -292,20 +292,18 @@ html, body {
 }
 
 /* Специальные стили для OBS - применяются только в OBS */
-@media (prefers-color-scheme: no-preference) {
-    body {
-        background: transparent !important;
-    }
-}
-
-/* Стили для OBS Browser Source */
-.obs-browser-source {
-    background: transparent !important;
-}
-
-/* Принудительно прозрачный фон для OBS */
 body.obs-mode {
-    background: transparent !important;
+    background: transparent;
+}
+
+body.obs-mode .obs-browser-source {
+    background: transparent;
+}
+
+@media (prefers-color-scheme: no-preference) {
+    body.obs-mode {
+        background: transparent;
+    }
 }
 
 /* Адаптивность для разных размеров в OBS */

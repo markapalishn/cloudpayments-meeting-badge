@@ -214,8 +214,8 @@ class MeetingTimer {
             return event.start > now;
         });
         
-        console.log('Текущая встреча:', this.currentMeeting ? this.currentMeeting.title : 'нет');
-        console.log('Следующая встреча:', this.nextMeeting ? this.nextMeeting.title : 'нет');
+        console.log('Текущая встреча:', this.currentMeeting ? this.currentMeeting.summary : 'нет');
+        console.log('Следующая встреча:', this.nextMeeting ? this.nextMeeting.summary : 'нет');
         
         // Если нет ни текущей, ни следующей встречи - показываем логотип компании
         if (!this.currentMeeting && !this.nextMeeting) {
@@ -393,8 +393,6 @@ class MeetingTimer {
                 const timeToNext = this.nextMeeting.start - now;
                 if (timeToNext > 0) {
                     this.elements.currentTimer.textContent = this.formatTimeRemaining(timeToNext);
-                } else {
-                    this.elements.currentTimer.textContent = 'Free-time';
                 }
             }
             
@@ -466,15 +464,73 @@ class MeetingTimer {
 // Инициализация при загрузке страницы
 let meetingTimer;
 document.addEventListener('DOMContentLoaded', () => {
-    // Определяем, запущено ли в OBS
-    const isOBS = window.location.href.includes('obs') || 
-                  window.navigator.userAgent.includes('OBS') ||
-                  window.parent !== window;
+    // Определяем, запущено ли в OBS с более строгими проверками
+    const isOBS = detectOBSEnvironment();
     
     if (isOBS) {
         document.body.classList.add('obs-mode');
-        document.body.style.background = 'transparent';
     }
+    
+    // Функция для точной детекции OBS
+    // Функция для точной детекции OBS
+    function detectOBSEnvironment() {
+        // Проверка 1: URL содержит OBS-специфичные параметры или фрагменты
+        const urlCheck = window.location.href.includes('obs') || 
+                        window.location.href.includes('obs-studio') ||
+                        window.location.search.includes('obs') ||
+                        window.location.hash.includes('obs');
+        
+        // Проверка 2: User Agent содержит OBS
+        const userAgentCheck = window.navigator.userAgent.includes('OBS') ||
+                              window.navigator.userAgent.includes('obs-studio');
+        
+        // Проверка 3: Проверяем, что мы в iframe И есть специфичные признаки OBS
+        const iframeCheck = window.parent !== window && (
+            // Проверяем наличие frameElement с OBS-специфичными атрибутами
+            (window.frameElement && (
+                (window.frameElement.id && window.frameElement.id.includes('obs')) ||
+                (window.frameElement.className && window.frameElement.className.includes('obs')) ||
+                (window.frameElement.getAttribute('data-obs') !== null)
+            )) ||
+            // Проверяем referrer на OBS-специфичные хосты
+            (document.referrer && (
+                document.referrer.includes('obs-studio') ||
+                document.referrer.includes('localhost') ||
+                document.referrer.includes('127.0.0.1')
+            )) ||
+            // Безопасная проверка hostname родительского окна
+            checkParentHostname()
+        );
+        
+        // Требуем комбинацию проверок для подтверждения OBS
+        // Минимум 2 из 3 проверок должны быть true, И должна быть хотя бы одна не-URL проверка
+        const checks = [urlCheck, userAgentCheck, iframeCheck];
+        const trueChecks = checks.filter(check => check).length;
+        
+        return trueChecks >= 2 && (userAgentCheck || iframeCheck);
+    }
+
+    function checkParentHostname() {
+        try {
+            return window.parent.location && (
+                window.parent.location.hostname === 'localhost' ||
+                window.parent.location.hostname === '127.0.0.1' ||
+                window.parent.location.hostname.includes('obs')
+            );
+        } catch (e) {
+            // Cross-origin access blocked - это нормально
+            return false;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Определяем, запущено ли в OBS с более строгими проверками
+        const isOBS = detectOBSEnvironment();
+        
+        if (isOBS) {
+            document.body.classList.add('obs-mode');
+        }
+    });
     
     meetingTimer = new MeetingTimer();
 });
