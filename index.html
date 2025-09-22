@@ -7,43 +7,45 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="meeting-badge" id="meetingBadge">
-        <div class="left-section">
-            <div class="cloud-logo">
-                <img src="assets/svg/Cloud-logo.svg" alt="Cloud" />
+    <div class="badge-container">
+        <div class="meeting-badge" id="meetingBadge">
+            <div class="left-section">
+                <div class="cloud-logo">
+                    <img src="assets/svg/Cloud-logo.svg" alt="Cloud" />
+                </div>
+                <div class="meeting-info">
+                    <div class="meeting-title">Конец через</div>
+                    <div class="timer" id="currentTimer">00:00</div>
+                </div>
             </div>
-            <div class="meeting-info">
-                <div class="meeting-title">Конец через</div>
-                <div class="timer" id="currentTimer">00:00</div>
+            
+            <div class="right-section">
+                <div class="next-info">
+                    <div class="next-label">следующая</div>
+                    <div class="next-time" id="nextCountdown">--:--</div>
+                </div>
+            </div>
+            
+            <div class="decorative-element">
+                <img src="assets/svg/Element-1.svg" alt="Decorative" />
             </div>
         </div>
         
-        <div class="right-section">
-            <div class="next-info">
-                <div class="next-label">следующая</div>
-                <div class="next-time" id="nextCountdown">--:--</div>
-            </div>
+        <!-- Логотип компании когда встреч нет -->
+        <div class="company-logo" id="companyLogo" style="display: none;">
+            <img src="assets/svg/All logo Cloud.svg" alt="Cloud Company Logo" />
         </div>
         
-        <div class="decorative-element">
-            <img src="assets/svg/Element-1.svg" alt="Decorative" />
+        <!-- Бейдж с должностью и ФИО -->
+        <div class="employee-info" id="employeeInfo" style="display: none;">
+            <div class="position-badge" id="positionBadge">PM</div>
+            <div class="name-badge" id="nameBadge">Апалишин Марк</div>
         </div>
-    </div>
-    
-    <!-- Логотип компании когда встреч нет -->
-    <div class="company-logo" id="companyLogo" style="display: none;">
-        <img src="assets/svg/All logo Cloud.svg" alt="Cloud Company Logo" />
-    </div>
-    
-    <!-- Бейдж с должностью и ФИО -->
-    <div class="employee-info" id="employeeInfo" style="display: none;">
-        <div class="position-badge" id="positionBadge">PM</div>
-        <div class="name-badge" id="nameBadge">Апалишин Марк</div>
-    </div>
-    
-    <!-- Зоны ответственности -->
-    <div class="responsibility-areas" id="responsibilityAreas" style="display: none;">
-        Alt-методы, реклама
+        
+        <!-- Зоны ответственности -->
+        <div class="responsibility-areas" id="responsibilityAreas" style="display: none;">
+            Alt-методы, реклама
+        </div>
     </div>
     
     <script src="config.js"></script>
