@@ -1,32 +1,19 @@
-/**
- * Система логирования для управления выводом отладочной информации
- */
-class Logger {
-    constructor() {
-        this.isDebugEnabled = window.CONFIG && window.CONFIG.DEBUG;
-    }
-    
-    debug(...args) {
-        if (this.isDebugEnabled) {
+// Упрощенная система логирования
+const logger = {
+    info: (...args) => console.log('[INFO]', ...args),
+    warn: (...args) => console.warn('[WARN]', ...args),
+    error: (...args) => console.error('[ERROR]', ...args),
+    debug: (...args) => {
+        if (window.CONFIG?.DEBUG) {
             console.log('[DEBUG]', ...args);
         }
+    },
+    verbose: (...args) => {
+        if (window.CONFIG?.VERBOSE_LOGGING) {
+            console.log('[VERBOSE]', ...args);
+        }
     }
-    
-    info(...args) {
-        console.log('[INFO]', ...args);
-    }
-    
-    warn(...args) {
-        console.warn('[WARN]', ...args);
-    }
-    
-    error(...args) {
-        console.error('[ERROR]', ...args);
-    }
-}
-
-// Создаем глобальный экземпляр логгера
-const logger = new Logger();
+};
 
 class MeetingTimer {
     constructor() {
@@ -79,10 +66,7 @@ class MeetingTimer {
     
     async loadMeetings() {
         try {
-            // Показываем лоадер при загрузке
             this.showLoader();
-            
-            // Загружаем из захардкоженного Google Calendar
             const calendarUrl = this.getGoogleCalendarUrl();
             await this.loadFromPublicCalendar(calendarUrl);
         } catch (error) {
@@ -92,12 +76,10 @@ class MeetingTimer {
     }
     
     getGoogleCalendarUrl() {
-        // Получаем URL календаря из конфигурации
         return window.CONFIG.CALENDAR_URL;
     }
     
     async fetchWithProxy(url) {
-        // Список proxy сервисов для обхода CORS
         const proxies = [
             `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
             `https://thingproxy.freeboard.io/fetch/${url}`,
@@ -112,8 +94,6 @@ class MeetingTimer {
                 if (response.ok) {
                     logger.info(`✅ Proxy ${i + 1} успешно загрузил данные`);
                     return response;
-                } else {
-                    logger.warn(`❌ Proxy ${i + 1} вернул статус ${response.status}`);
                 }
             } catch (error) {
                 logger.warn(`❌ Proxy ${i + 1} не сработал:`, error.message);
@@ -126,7 +106,7 @@ class MeetingTimer {
     
     async loadFromPublicCalendar(calendarUrl) {
         try {
-            logger.debug('Загружаем календарь из:', calendarUrl);
+            logger.info('🔄 Загружаем события на сегодня из календаря');
             
             // Добавляем параметр для обхода кэша Google Calendar
             let urlWithCacheBuster = calendarUrl;
@@ -164,7 +144,7 @@ class MeetingTimer {
             }
             
             const icalData = await response.text();
-            logger.debug('iCal данные загружены, размер:', icalData.length, 'символов');
+            logger.info('✅ iCal данные загружены, размер:', icalData.length, 'символов');
             
             // Проверяем, не получили ли мы HTML ошибку вместо iCal
             if (icalData.includes('<html') || icalData.includes('Error 404')) {
@@ -174,7 +154,7 @@ class MeetingTimer {
             }
             
             const events = this.parseICalData(icalData);
-            logger.debug('События распарсены:', events.length);
+            logger.info('📅 События распарсены:', events.length);
             
             this.processCalendarEvents(events);
             
@@ -204,37 +184,30 @@ class MeetingTimer {
                     logger.info('📝 Создано название по умолчанию: "Встреча"');
                 }
                 
-                logger.info('🔍 Проверяем событие:', {
-                    summary: currentEvent.summary || 'ОТСУТСТВУЕТ',
-                    start: currentEvent.start || 'ОТСУТСТВУЕТ',
-                    end: currentEvent.end || 'ОТСУТСТВУЕТ'
-                });
-                
                 // Проверяем каждое поле отдельно
                 const hasSummary = !!currentEvent.summary;
                 const hasStart = !!currentEvent.start;
                 const hasEnd = !!currentEvent.end;
                 
-                logger.info('🔍 Детальная проверка:', {
-                    hasSummary,
-                    hasStart, 
-                    hasEnd,
-                    summary: currentEvent.summary,
-                    start: currentEvent.start,
-                    end: currentEvent.end
-                });
-                
                 if (hasSummary && hasStart && hasEnd) {
-                    logger.info('✅ Событие добавлено:', {
-                        summary: currentEvent.summary,
-                        start: currentEvent.start,
-                        end: currentEvent.end
-                    });
-                    events.push({
-                        summary: currentEvent.summary,
-                        start: currentEvent.start,
-                        end: currentEvent.end
-                    });
+                    // Если есть правило повторения, генерируем повторяющиеся события
+                    if (currentEvent.rrule) {
+                        const recurringEvents = this.generateRecurringEvents(currentEvent);
+                        events.push(...recurringEvents);
+                        logger.info(`✅ Добавлено ${recurringEvents.length} повторяющихся событий для "${currentEvent.summary}"`);
+                    } else {
+                        // Обычное событие без повторения
+                        events.push({
+                            summary: currentEvent.summary,
+                            start: currentEvent.start,
+                            end: currentEvent.end
+                        });
+                        logger.info('✅ Событие добавлено:', {
+                            summary: currentEvent.summary,
+                            start: currentEvent.start,
+                            end: currentEvent.end
+                        });
+                    }
                 } else {
                     logger.warn('❌ Событие пропущено - неполные данные:', {
                         missing: {
@@ -260,13 +233,13 @@ class MeetingTimer {
                 switch (key) {
                     case 'SUMMARY':
                         currentEvent.summary = value;
-                        logger.info('📝 Найден SUMMARY:', value);
+                        logger.verbose('📝 Найден SUMMARY:', value);
                         break;
                     case 'TITLE':
                         // Альтернативное поле для названия
                         if (!currentEvent.summary) {
                             currentEvent.summary = value;
-                            logger.info('📝 Найден TITLE (используем как SUMMARY):', value);
+                            logger.verbose('📝 Найден TITLE (используем как SUMMARY):', value);
                         }
                         break;
                     case 'DTSTART':
@@ -278,6 +251,10 @@ class MeetingTimer {
                     case 'DESCRIPTION':
                         currentEvent.description = value;
                         break;
+                case 'RRULE':
+                    currentEvent.rrule = value;
+                    logger.verbose('🔄 Найдено правило повторения:', value);
+                    break;
                 }
             }
         }
@@ -285,8 +262,90 @@ class MeetingTimer {
         return events;
     }
     
+    generateRecurringEvents(event) {
+        const events = [];
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const endDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 дней вперед
+        
+        logger.info('🔄 Генерируем повторяющиеся события для:', event.summary);
+        
+        // Простая логика: генерируем события на каждый день недели, указанный в BYDAY
+        const rrule = this.parseRRULE(event.rrule);
+        if (!rrule || !rrule.byday) {
+            logger.warn('❌ Не удалось распарсить RRULE или нет BYDAY:', event.rrule);
+            return events;
+        }
+        
+        // Конвертируем дни недели из iCal формата в числа
+        const dayMap = { 'MO': 1, 'TU': 2, 'WE': 3, 'TH': 4, 'FR': 5, 'SA': 6, 'SU': 0 };
+        const allowedDays = rrule.byday.map(day => dayMap[day]).filter(day => day !== undefined);
+        
+        logger.info('🔄 Дни недели для повторения:', allowedDays);
+        
+        // Генерируем события на ближайшие 7 дней
+        for (let i = 0; i < 7; i++) {
+            const currentDate = new Date(today.getTime() + i * 24 * 60 * 60 * 1000);
+            const dayOfWeek = currentDate.getDay();
+            
+            if (allowedDays.includes(dayOfWeek)) {
+                // Создаем событие с правильным временем
+                const eventStart = new Date(currentDate);
+                eventStart.setHours(event.start.getHours());
+                eventStart.setMinutes(event.start.getMinutes());
+                eventStart.setSeconds(event.start.getSeconds());
+                
+                const duration = event.end.getTime() - event.start.getTime();
+                const eventEnd = new Date(eventStart.getTime() + duration);
+                
+                events.push({
+                    summary: event.summary,
+                    start: eventStart,
+                    end: eventEnd
+                });
+                
+                logger.info('✅ Сгенерировано событие:', {
+                    summary: event.summary,
+                    start: eventStart.toLocaleString(),
+                    end: eventEnd.toLocaleString()
+                });
+            }
+        }
+        
+        logger.info(`🔄 Всего сгенерировано ${events.length} повторяющихся событий`);
+        return events;
+    }
+    
+    parseRRULE(rruleString) {
+        const rule = {};
+        const parts = rruleString.split(';');
+        
+        for (const part of parts) {
+            const [key, value] = part.split('=');
+            switch (key) {
+                case 'FREQ':
+                    rule.freq = value;
+                    break;
+                case 'BYDAY':
+                    rule.byday = value.split(',');
+                    break;
+                case 'INTERVAL':
+                    rule.interval = parseInt(value) || 1;
+                    break;
+                case 'COUNT':
+                    rule.count = parseInt(value);
+                    break;
+                case 'UNTIL':
+                    rule.until = new Date(value);
+                    break;
+            }
+        }
+        
+        return rule;
+    }
+    
     parseICalDate(dateString) {
-        logger.info('📅 Парсим дату:', dateString);
+        logger.verbose('📅 Парсим дату:', dateString);
         
         // Парсим дату в формате iCal
         if (dateString.includes('TZID=Europe/Moscow:')) {
@@ -300,9 +359,9 @@ class MeetingTimer {
             const second = datePart.substring(13, 15);
             
             const dateStr = `${year}-${month}-${day}T${hour}:${minute}:${second}+03:00`;
-            logger.info('📅 Создаем дату (Moscow):', dateStr);
+            logger.verbose('📅 Создаем дату (Moscow):', dateStr);
             const result = new Date(dateStr);
-            logger.info('📅 Результат (Moscow):', result, 'Valid:', !isNaN(result.getTime()));
+            logger.verbose('📅 Результат (Moscow):', result, 'Valid:', !isNaN(result.getTime()));
             return result;
         } else if (dateString.endsWith('Z')) {
             // Формат UTC: DTSTART:20250921T180000Z
@@ -322,9 +381,9 @@ class MeetingTimer {
             const second = datePart.substring(13, 15);
             
             const dateStr = `${year}-${month}-${day}T${hour}:${minute}:${second}Z`;
-            logger.info('📅 Создаем дату (UTC):', dateStr);
+            logger.verbose('📅 Создаем дату (UTC):', dateStr);
             const result = new Date(dateStr);
-            logger.info('📅 Результат (UTC):', result, 'Valid:', !isNaN(result.getTime()));
+            logger.verbose('📅 Результат (UTC):', result, 'Valid:', !isNaN(result.getTime()));
             return result;
         } else if (dateString.length >= 15 && dateString.includes('T')) {
             // Простой формат: DTSTART:20250922T104500
@@ -344,9 +403,9 @@ class MeetingTimer {
             const second = datePart.substring(13, 15);
             
             const dateStr = `${year}-${month}-${day}T${hour}:${minute}:${second}+03:00`;
-            logger.info('📅 Создаем дату (простой):', dateStr);
+            logger.verbose('📅 Создаем дату (простой):', dateStr);
             const result = new Date(dateStr);
-            logger.info('📅 Результат (простой):', result, 'Valid:', !isNaN(result.getTime()));
+            logger.verbose('📅 Результат (простой):', result, 'Valid:', !isNaN(result.getTime()));
             return result;
         } else {
             // Неизвестный формат даты
@@ -363,18 +422,27 @@ class MeetingTimer {
         logger.info('📅 Обрабатываем события календаря:', events.length);
         logger.info('🕐 Текущее время:', now.toLocaleString());
         logger.info('📅 Сегодня:', today.toLocaleDateString());
-        logger.info('📅 Завтра:', tomorrow.toLocaleDateString());
         
-        // Фильтруем события на сегодня и завтра
-        const relevantEvents = events.filter(event => {
+        // Фильтруем события на сегодня
+        const todayEvents = events.filter(event => {
             const eventDate = new Date(event.start);
-            return eventDate >= today && eventDate < tomorrow;
+            const isToday = eventDate >= today && eventDate < tomorrow;
+            
+            logger.verbose(`🔍 Проверяем событие "${event.summary}":`, {
+                start: event.start.toLocaleString(),
+                eventDate: eventDate.toLocaleString(),
+                today: today.toLocaleString(),
+                tomorrow: tomorrow.toLocaleString(),
+                isToday: isToday
+            });
+            
+            return isToday;
         });
         
-        logger.info('📅 Релевантных событий:', relevantEvents.length);
+        logger.info('📅 Событий на сегодня:', todayEvents.length);
         
-        // Показываем все релевантные события
-        relevantEvents.forEach((event, index) => {
+        // Показываем все события на сегодня
+        todayEvents.forEach((event, index) => {
             logger.info(`📅 Событие ${index + 1}:`, {
                 summary: event.summary,
                 start: event.start.toLocaleString(),
@@ -385,64 +453,40 @@ class MeetingTimer {
         });
         
         // Сортируем по времени начала
-        relevantEvents.sort((a, b) => a.start - b.start);
+        todayEvents.sort((a, b) => a.start - b.start);
         
         // Находим текущую встречу
-        this.currentMeeting = relevantEvents.find(event => {
+        this.currentMeeting = todayEvents.find(event => {
             const isCurrent = event.start <= now && event.end > now;
-            logger.info(`🔍 Проверяем встречу "${event.summary}":`, {
-                start: event.start.toLocaleString(),
-                end: event.end.toLocaleString(),
-                now: now.toLocaleString(),
-                isCurrent
-            });
             return isCurrent;
         });
         
         // Находим следующую встречу
-        this.nextMeeting = relevantEvents.find(event => {
+        this.nextMeeting = todayEvents.find(event => {
             const isFuture = event.start > now;
-            logger.info(`🔍 Проверяем будущую встречу "${event.summary}":`, {
-                start: event.start.toLocaleString(),
-                now: now.toLocaleString(),
-                isFuture
-            });
             return isFuture;
         });
         
         logger.info('✅ Текущая встреча:', this.currentMeeting ? this.currentMeeting.summary : 'нет');
         logger.info('⏭️ Следующая встреча:', this.nextMeeting ? this.nextMeeting.summary : 'нет');
         
-        // Если нет ни текущей, ни следующей встречи - показываем логотип компании
-        if (!this.currentMeeting && !this.nextMeeting) {
-            logger.info('Нет встреч - показываем логотип компании');
+        // Если нет встреч на сегодня - показываем логотип компании
+        if (todayEvents.length === 0) {
+            logger.info('Нет встреч на сегодня - показываем логотип компании');
             this.hideBadge();
-            // Обновляем информацию о сотруднике даже когда нет встреч
             this.updateEmployeeInfo();
             return;
         }
         
-        logger.info('Есть встречи - показываем бейдж');
+        logger.info('Есть встречи на сегодня - показываем бейдж');
         this.updateDisplay();
     }
     
     updateDisplay() {
-        // Сразу скрываем лоадер и показываем контент
         this.hideLoader();
-        
-        // Показываем бейдж, так как есть встречи
         this.showBadge();
-        
-        // Инициализируем градиент и таймеры
         this.updateTimers();
-        
-        // Обновляем информацию о сотруднике только при загрузке
         this.updateEmployeeInfo();
-        
-        // Принудительно обновляем градиент
-        setTimeout(() => {
-            this.updateTimers();
-        }, 100);
     }
     
     updateEmployeeInfo() {
@@ -458,10 +502,6 @@ class MeetingTimer {
         }
     }
     
-    updateTimerOnly() {
-        // Обновляем только таймеры, без информации о сотруднике
-        this.updateTimers();
-    }
     
     startTimer() {
         // Обновление таймера каждую секунду
@@ -576,42 +616,27 @@ class MeetingTimer {
     updateTimers() {
         const now = new Date();
         
-        // Обновляем таймер текущей встречи
         if (this.currentMeeting) {
             const remaining = this.currentMeeting.end - now;
             const totalDuration = this.currentMeeting.end - this.currentMeeting.start;
             
-            // Обновляем заголовок
             this.elements.meetingTitle.textContent = 'Конец через';
             
             if (remaining > 0) {
-                // Показываем оставшееся время до конца встречи
                 this.elements.currentTimer.textContent = this.formatTimeRemaining(remaining);
-                this.elements.currentTimer.className = 'timer';
-                
-                // Предупреждение за заданное время до конца
-                if (remaining < window.CONFIG.WARNING_TIME) {
-                    this.elements.currentTimer.className = 'timer warning';
-                }
-                
-                // Обновляем заполнение в зависимости от оставшегося времени
+                this.elements.currentTimer.className = remaining < window.CONFIG.WARNING_TIME ? 'timer warning' : 'timer';
                 this.updateFill(remaining, totalDuration);
             } else {
-                // Встреча просрочена
                 const overdue = Math.abs(remaining);
                 this.elements.currentTimer.textContent = '-' + this.formatTimeRemaining(overdue);
                 this.elements.currentTimer.className = 'timer overdue';
-                
-                // Полностью синий для просроченных встреч
                 this.updateFill(0, totalDuration);
             }
         } else {
-            // Если нет текущей встречи, показываем "Free-time" и обратный отсчет до следующей встречи
             this.elements.meetingTitle.textContent = 'Free-time';
             this.elements.currentTimer.textContent = 'Free-time';
             this.elements.currentTimer.className = 'timer';
             
-            // Если есть следующая встреча, показываем обратный отсчет до неё
             if (this.nextMeeting) {
                 const timeToNext = this.nextMeeting.start - now;
                 if (timeToNext > 0) {
@@ -619,50 +644,34 @@ class MeetingTimer {
                 }
             }
             
-            // Если нет текущей встречи, показываем прозрачный фон
             const meetingBadge = document.querySelector('.meeting-badge');
             if (meetingBadge) {
                 meetingBadge.style.background = 'transparent';
             }
         }
         
-        // Показываем время начала следующей встречи по Москве
-        if (this.nextMeeting) {
-            this.elements.nextCountdown.textContent = this.formatMoscowTime(this.nextMeeting.start);
-        } else {
-            this.elements.nextCountdown.textContent = 'нет';
-        }
+        this.elements.nextCountdown.textContent = this.nextMeeting ? this.formatMoscowTime(this.nextMeeting.start) : 'нет';
     }
     
     updateFill(remaining, total) {
-        // Вычисляем процент оставшегося времени (0-1)
         const progress = Math.max(0, Math.min(1, remaining / total));
-        
-        // Вычисляем процент заполнения (0% = прозрачный, 100% = синий)
         const fillPercentage = (1 - progress) * 100;
-        
-        // Обновляем CSS для эффекта заполнения
         const meetingBadge = document.querySelector('.meeting-badge');
+        
         if (meetingBadge) {
             if (progress === 0) {
-                // Полностью синий
                 meetingBadge.style.background = '#0037C0';
             } else if (progress === 1) {
-                // Прозрачный фон
                 meetingBadge.style.background = 'transparent';
             } else {
-                // Эффект заполнения - синий слева, прозрачный справа
                 const gradient = `linear-gradient(90deg, #0037C0 0%, #0037C0 ${fillPercentage}%, transparent ${fillPercentage}%, transparent 100%)`;
                 meetingBadge.style.background = gradient;
             }
-            logger.debug(`Заполнение обновлено: progress=${progress.toFixed(2)}, fill=${fillPercentage.toFixed(1)}%`);
         }
     }
     
     formatMoscowTime(date) {
-        // Конвертируем время в московский часовой пояс
-        const moscowTime = new Date(date.toLocaleString("en-US", {timeZone: "Europe/Moscow"}));
-        return moscowTime.toLocaleTimeString('ru-RU', {
+        return date.toLocaleTimeString('ru-RU', {
             hour: '2-digit',
             minute: '2-digit',
             timeZone: 'Europe/Moscow'
@@ -675,11 +684,8 @@ class MeetingTimer {
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const seconds = totalSeconds % 60;
         
-        if (hours > 0) {
-            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        } else {
-            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
+        const pad = (n) => n.toString().padStart(2, '0');
+        return hours > 0 ? `${pad(hours)}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`;
     }
     
 }
@@ -695,55 +701,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Функция для точной детекции OBS
-    // Функция для точной детекции OBS
     function detectOBSEnvironment() {
-        // Проверка 1: URL содержит OBS-специфичные параметры или фрагменты
-        const urlCheck = window.location.href.includes('obs') || 
-                        window.location.href.includes('obs-studio') ||
-                        window.location.search.includes('obs') ||
-                        window.location.hash.includes('obs');
-        
-        // Проверка 2: User Agent содержит OBS
-        const userAgentCheck = window.navigator.userAgent.includes('OBS') ||
-                              window.navigator.userAgent.includes('obs-studio');
-        
-        // Проверка 3: Проверяем, что мы в iframe И есть специфичные признаки OBS
+        const urlCheck = window.location.href.includes('obs') || window.location.href.includes('obs-studio');
+        const userAgentCheck = window.navigator.userAgent.includes('OBS') || window.navigator.userAgent.includes('obs-studio');
         const iframeCheck = window.parent !== window && (
-            // Проверяем наличие frameElement с OBS-специфичными атрибутами
-            (window.frameElement && (
-                (window.frameElement.id && window.frameElement.id.includes('obs')) ||
-                (window.frameElement.className && window.frameElement.className.includes('obs')) ||
-                (window.frameElement.getAttribute('data-obs') !== null)
-            )) ||
-            // Проверяем referrer на OBS-специфичные хосты
-            (document.referrer && (
-                document.referrer.includes('obs-studio') ||
-                document.referrer.includes('localhost') ||
-                document.referrer.includes('127.0.0.1')
-            )) ||
-            // Безопасная проверка hostname родительского окна
-            checkParentHostname()
+            (window.frameElement && window.frameElement.id?.includes('obs')) ||
+            (document.referrer && (document.referrer.includes('localhost') || document.referrer.includes('127.0.0.1')))
         );
         
-        // Требуем комбинацию проверок для подтверждения OBS
-        // Минимум 2 из 3 проверок должны быть true, И должна быть хотя бы одна не-URL проверка
         const checks = [urlCheck, userAgentCheck, iframeCheck];
-        const trueChecks = checks.filter(check => check).length;
-        
-        return trueChecks >= 2 && (userAgentCheck || iframeCheck);
-    }
-
-    function checkParentHostname() {
-        try {
-            return window.parent.location && (
-                window.parent.location.hostname === 'localhost' ||
-                window.parent.location.hostname === '127.0.0.1' ||
-                window.parent.location.hostname.includes('obs')
-            );
-        } catch (e) {
-            // Cross-origin access blocked - это нормально
-            return false;
-        }
+        return checks.filter(check => check).length >= 2 && (userAgentCheck || iframeCheck);
     }
 
     meetingTimer = new MeetingTimer();
