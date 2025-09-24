@@ -33,11 +33,11 @@
 
 html {
     width: 686px;
-    height: 350px;
+    height: 400px;
     background: transparent !important;
     overflow: hidden;
     margin: 0;
-    padding: 0;
+    padding: 25px 0; /* Добавляем отступы сверху и снизу */
 }
 
 body {
@@ -65,7 +65,7 @@ body {
     align-items: flex-start; /* Выравнивание по левому краю */
     justify-content: flex-start;
     position: relative;
-    margin: 0;
+    margin: 0 auto; /* Центрируем контейнер */
     padding: 0;
     z-index: 1000;
 }
