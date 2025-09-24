@@ -33,11 +33,11 @@
 
 html {
     width: 686px;
-    height: 400px;
+    min-height: 450px; /* Увеличиваем минимальную высоту */
     background: transparent !important;
     overflow: hidden;
     margin: 0;
-    padding: 25px 0; /* Добавляем отступы сверху и снизу */
+    padding: 30px 0; /* Увеличиваем отступы */
 }
 
 body {
@@ -58,7 +58,7 @@ body {
 /* Контейнер для всех элементов бейджа */
 .badge-container {
     width: 626px;
-    height: 350px;
+    min-height: 390px; /* Увеличиваем минимальную высоту */
     background: transparent !important;
     display: flex;
     flex-direction: column;
@@ -66,7 +66,7 @@ body {
     justify-content: flex-start;
     position: relative;
     margin: 0 auto; /* Центрируем контейнер */
-    padding: 0;
+    padding: 20px 0; /* Добавляем отступы сверху и снизу */
     z-index: 1000;
 }
 
@@ -214,17 +214,17 @@ body {
 }
 
 .company-logo img {
-    max-width: 80%;
-    max-height: 60%;
+    max-width: 70%; /* Уменьшаем максимальную ширину */
+    max-height: 50%; /* Уменьшаем максимальную высоту */
     object-fit: contain;
-    transform: scale(3); /* Увеличиваем в 3 раза */
+    transform: scale(2.5); /* Уменьшаем масштаб с 3 до 2.5 */
 }
 
 /* Стили для информации о сотруднике */
 .employee-info {
     display: flex;
     gap: 12px; /* Отступ между PM и ФИО */
-    margin-top: 30px;
+    margin: 30px 0; /* Добавляем отступы сверху и снизу */
     align-items: center;
     width: 100%;
     justify-content: flex-start; /* Выравнивание по левому краю */
@@ -266,7 +266,7 @@ body {
     font-family: 'Stolzl Book', sans-serif;
     font-weight: 350;
     font-size: 40px;
-    margin-top: 30px;
+    margin: 30px 0; /* Добавляем отступы сверху и снизу */
     text-align: left; /* Выравнивание по левому краю */
     white-space: nowrap;
     width: 100%;
