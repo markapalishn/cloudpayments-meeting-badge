@@ -55,6 +55,9 @@ class MeetingTimer {
     }
     
     hideBadge() {
+        // Скрываем лоадер
+        this.hideLoader();
+        
         // Показываем логотип компании когда встреч нет
         document.getElementById('meetingBadge').style.display = 'none';
         document.getElementById('companyLogo').style.display = 'flex';
@@ -76,6 +79,9 @@ class MeetingTimer {
     
     async loadMeetings() {
         try {
+            // Показываем лоадер при загрузке
+            this.showLoader();
+            
             // Загружаем из захардкоженного Google Calendar
             const calendarUrl = this.getGoogleCalendarUrl();
             await this.loadFromPublicCalendar(calendarUrl);
@@ -421,6 +427,9 @@ class MeetingTimer {
     }
     
     updateDisplay() {
+        // Сразу скрываем лоадер и показываем контент
+        this.hideLoader();
+        
         // Показываем бейдж, так как есть встречи
         this.showBadge();
         
@@ -503,12 +512,44 @@ class MeetingTimer {
     // Принудительное обновление календаря
     refreshCalendar() {
         logger.info('🔄 Принудительное обновление календаря...');
+        // Показываем лоадер (он скроет бейдж встречи)
+        this.showLoader();
         // Очищаем текущие данные
         this.currentMeeting = null;
         this.nextMeeting = null;
-        this.hideBadge();
-        // Загружаем заново
+        
+        // Загружаем календарь сразу
         this.loadMeetings();
+    }
+    
+    showLoader() {
+        // Скрываем бейдж встречи и показываем лоадер
+        const meetingBadge = document.getElementById('meetingBadge');
+        const loader = document.getElementById('loader');
+        
+        if (meetingBadge) {
+            meetingBadge.style.display = 'none';
+        }
+        if (loader) {
+            loader.style.display = 'flex';
+            logger.info('🔄 Лоадер показан');
+        } else {
+            logger.warn('❌ Лоадер не найден');
+        }
+    }
+    
+    hideLoader() {
+        // Скрываем лоадер и показываем бейдж встречи
+        const meetingBadge = document.getElementById('meetingBadge');
+        const loader = document.getElementById('loader');
+        
+        if (loader) {
+            loader.style.display = 'none';
+        }
+        if (meetingBadge) {
+            meetingBadge.style.display = 'flex';
+        }
+        logger.info('✅ Лоадер скрыт');
     }
     
     

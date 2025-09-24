@@ -33,11 +33,11 @@
 
 html {
     width: 686px;
-    height: 500px; /* Фиксированная высота */
+    height: 400px; /* Фиксированная высота для OBS */
     background: transparent !important;
     overflow: hidden;
     margin: 0;
-    padding: 40px 0; /* Увеличиваем отступы для предотвращения обрезания */
+    padding: 20px 0; /* Уменьшаем отступы для 400px */
 }
 
 body {
@@ -58,7 +58,7 @@ body {
 /* Контейнер для всех элементов бейджа */
 .badge-container {
     width: 626px;
-    height: 420px; /* Фиксированная высота */
+    height: auto; /* Высота по содержимому */
     background: transparent !important;
     display: flex;
     flex-direction: column;
@@ -72,15 +72,16 @@ body {
 
 .meeting-badge {
     width: 626px; /* Фиксированная ширина */
-    height: 130px; /* Фиксированная высота */
-    background: transparent; /* Прозрачный фон */
+    height: 145px; /* Фиксированная высота */
+    background: rgba(0, 55, 192, 0.15); /* Полупрозрачный синий фон с блюром */
+    backdrop-filter: blur(20px) saturate(1.2) brightness(1.1); /* Усиленный блюр с искажениями */
     border: 3px solid var(--primary-color, #0037C0); /* Синяя внутренняя обводка */
     border-radius: 30px;
     position: relative;
     overflow: hidden;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: space-around;
     box-sizing: border-box;
     padding: 0 40px;
     transition: transform 0.1s ease; /* Плавная анимация для OBS обновления */
@@ -163,7 +164,7 @@ body {
 .next-label {
     font-size: 24px;
     font-weight: 400;
-    color: rgba(255, 255, 255, 0.7);
+    color: white;
     margin-bottom: 4px;
 }
 
@@ -177,13 +178,13 @@ body {
 }
 
 .decorative-element {
-    position: absolute;
-    left: 59%;
-    top: 0;
-    transform: translateX(-50%);
-    width: 94px;
-    height: 170px;
-    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 47px;
+    height: 85px;
+    margin: 0 20px;
+    flex-shrink: 0;
 }
 
 .decorative-element img {
@@ -203,21 +204,21 @@ body {
 
 /* Стили для логотипа компании когда встреч нет */
 .company-logo {
-    width: 626px; /* Фиксированная ширина */
-    height: 130px; /* Фиксированная высота */
+    width: 500px; /* 178px (логотип) + 20px (по 10px с каждой стороны) */
+    height: 100px; /* 28px (логотип) + 20px (по 10px сверху и снизу) */
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: center; /* Выравниваем по центру */
     background: #0037C0;
     border-radius: 30px;
     margin-bottom: 0; /* Убираем отступ снизу */
+    padding: 0 10px; /* Ровно 10px с каждой стороны */
 }
 
 .company-logo img {
-    max-width: 70%; /* Уменьшаем максимальную ширину */
-    max-height: 50%; /* Уменьшаем максимальную высоту */
+    width: 88%; /* Фиксированная ширина (533/3) */
+    height: 88%; /* Фиксированная высота (83/3) */
     object-fit: contain;
-    transform: scale(2.5); /* Уменьшаем масштаб с 3 до 2.5 */
 }
 
 /* Стили для информации о сотруднике */
@@ -226,38 +227,24 @@ body {
     gap: 12px; /* Отступ между PM и ФИО */
     margin: 30px 0; /* Добавляем отступы сверху и снизу */
     align-items: center;
-    width: 100%;
+    width: auto; /* Ширина по содержимому */
     justify-content: flex-start; /* Выравнивание по левому краю */
 }
 
-.position-badge {
+/* Общие стили для всех бейджей */
+.badge {
     background: var(--primary-color, #0037C0);
     color: white;
     font-family: 'Stolzl', sans-serif;
     font-weight: 500;
     font-size: 40px;
-    padding: 36px 48px; /* 36px сверху/снизу, 48px по бокам */
-    border-radius: 60px 24px 24px 60px; /* 60px слева, 24px справа */
+    padding: 24px 36px; /* Равномерные отступы */
+    border-radius: 24px; /* Равномерное скругление */
     white-space: nowrap;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 80px;
-}
-
-.name-badge {
-    background: var(--primary-color, #0037C0);
-    color: white;
-    font-family: 'Stolzl', sans-serif;
-    font-weight: 500;
-    font-size: 40px;
-    padding: 36px 48px; /* 36px сверху/снизу, 48px по бокам */
-    border-radius: 24px 60px 60px 24px; /* 24px слева, 60px справа */
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 200px;
+    min-width: 80px; /* Минимальная ширина */
 }
 
 /* Стили для зон ответственности */
@@ -266,12 +253,52 @@ body {
     font-family: 'Stolzl Book', sans-serif;
     font-weight: 350;
     font-size: 40px;
-    margin-top: 30px; /* Только верхний отступ 30px */
+    margin-top: 0;
     margin-bottom: 0; /* Убираем нижний отступ */
     text-align: left; /* Выравнивание по левому краю */
     white-space: nowrap;
-    width: 100%;
+    width: auto; /* Ширина по содержимому */
 }
+
+/* Стили для лоадера */
+.loader {
+    width: 626px; /* Такая же ширина как у бейджа встречи */
+    height: 145px; /* Такая же высота как у бейджа встречи */
+    background: rgba(0, 55, 192, 0.15); /* Тот же фон с блюром */
+    backdrop-filter: blur(20px) saturate(1.2) brightness(1.1); /* Тот же блюр */
+    border: 3px solid var(--primary-color, #0037C0); /* Такая же граница */
+    border-radius: 30px; /* Такие же скругления */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 30px 0;
+    position: relative;
+}
+
+.loader-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+}
+
+.loader-text {
+    color: white;
+    font-family: 'Stolzl', sans-serif;
+    font-weight: 500;
+    font-size: 18px;
+    text-align: center;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 
 /* Жесткая фиксация для OBS - предотвращает "пляски" */
 * {
@@ -309,50 +336,3 @@ body.obs-mode .obs-browser-source {
     }
 }
 
-/* Адаптивность для разных размеров в OBS */
-@media (max-width: 800px) {
-    html {
-        width: 620px;
-        height: 160px;
-    }
-    
-    body {
-        width: 100%;
-        height: 100%;
-        padding: 10px;
-    }
-    
-    .meeting-badge {
-        width: 100%;
-        height: 100%;
-        padding: 0 30px;
-    }
-    
-    .timer {
-        font-size: 42px;
-    }
-    
-    .next-time {
-        font-size: 42px;
-    }
-    
-    .meeting-title {
-        font-size: 28px;
-        max-width: 240px;
-    }
-    
-    .cloud-logo {
-        width: 64px;
-        height: 64px;
-        margin-right: 24px;
-    }
-    
-    .decorative-element {
-        width: 76px;
-        height: 136px;
-    }
-    
-    .company-logo img {
-        transform: scale(2); /* Уменьшенное увеличение для мобильных */
-    }
-}
