@@ -161,9 +161,6 @@ const CONFIG = {
 ```javascript
 const CONFIG = {
     DEBUG: false,                // Подробное логирование для отладки
-<<<<<<< HEAD
-    VERBOSE_LOGGING: false,      // Подробное логирование парсинга календаря
-=======
 };
 ```
 
@@ -174,7 +171,6 @@ const CONFIG = {
     EMPLOYEE_NAME: 'Апалишин Марк',             // ФИО
     RESPONSIBILITY_AREAS: 'Alt-методы, реклама', // Зоны ответственности
     EMPLOYEE_INFO_AUTO_UPDATE: false,           // Автообновление информации
->>>>>>> main
 };
 ```
 
