@@ -32,59 +32,59 @@
 }
 
 html {
-    width: 686px;
-    min-height: 450px; /* Увеличиваем минимальную высоту */
+    width: 686px !important;
+    height: 500px !important; /* Фиксированная высота */
     background: transparent !important;
-    overflow: hidden;
-    margin: 0;
-    padding: 30px 0; /* Увеличиваем отступы */
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 40px 0 !important; /* Увеличиваем отступы для предотвращения обрезания */
 }
 
 body {
     font-family: 'Stolzl', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: transparent !important;
     color: white;
-    overflow: hidden;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
 }
 
 /* Контейнер для всех элементов бейджа */
 .badge-container {
-    width: 626px;
-    min-height: 390px; /* Увеличиваем минимальную высоту */
+    width: 626px !important;
+    height: 420px !important; /* Фиксированная высота */
     background: transparent !important;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start; /* Выравнивание по левому краю */
-    justify-content: flex-start;
-    position: relative;
-    margin: 0 auto; /* Центрируем контейнер */
-    padding: 20px 0; /* Добавляем отступы сверху и снизу */
-    z-index: 1000;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important; /* Выравнивание по левому краю */
+    justify-content: flex-start !important;
+    position: relative !important;
+    margin: 0 auto !important; /* Центрируем контейнер */
+    padding: 0 !important; /* Убираем отступы - они уже в html */
+    z-index: 1000 !important;
 }
 
 .meeting-badge {
-    width: 626px; /* Фиксированная ширина */
-    height: 130px; /* Фиксированная высота */
-    background: transparent; /* Прозрачный фон */
-    border: 3px solid var(--primary-color, #0037C0); /* Синяя внутренняя обводка */
-    border-radius: 30px;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-sizing: border-box;
-    padding: 0 40px;
-    transition: transform 0.1s ease; /* Плавная анимация для OBS обновления */
-    margin-bottom: 0; /* Убираем отступ снизу */
+    width: 626px !important; /* Фиксированная ширина */
+    height: 130px !important; /* Фиксированная высота */
+    background: transparent !important; /* Прозрачный фон */
+    border: 3px solid var(--primary-color, #0037C0) !important; /* Синяя внутренняя обводка */
+    border-radius: 30px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
+    padding: 0 40px !important;
+    transition: transform 0.1s ease !important; /* Плавная анимация для OBS обновления */
+    margin-bottom: 0 !important; /* Убираем отступ снизу */
 }
 
 .meeting-badge::before {
@@ -203,14 +203,14 @@ body {
 
 /* Стили для логотипа компании когда встреч нет */
 .company-logo {
-    width: 626px; /* Фиксированная ширина */
-    height: 130px; /* Фиксированная высота */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #0037C0;
-    border-radius: 30px;
-    margin-bottom: 0; /* Убираем отступ снизу */
+    width: 626px !important; /* Фиксированная ширина */
+    height: 130px !important; /* Фиксированная высота */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #0037C0 !important;
+    border-radius: 30px !important;
+    margin-bottom: 0 !important; /* Убираем отступ снизу */
 }
 
 .company-logo img {
@@ -266,7 +266,8 @@ body {
     font-family: 'Stolzl Book', sans-serif;
     font-weight: 350;
     font-size: 40px;
-    margin: 30px 0; /* Добавляем отступы сверху и снизу */
+    margin-top: 30px; /* Только верхний отступ 30px */
+    margin-bottom: 0; /* Убираем нижний отступ */
     text-align: left; /* Выравнивание по левому краю */
     white-space: nowrap;
     width: 100%;
