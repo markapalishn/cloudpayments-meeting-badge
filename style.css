@@ -330,7 +330,8 @@ body.obs-mode .obs-browser-source {
     background: transparent;
 }
 
-@media (prefers-color-scheme: no-preference) {
+/* Fallback для браузеров без поддержки prefers-color-scheme */
+@supports not (color-scheme: light dark) {
     body.obs-mode {
         background: transparent;
     }
