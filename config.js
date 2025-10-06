@@ -52,9 +52,13 @@ const CONFIG = {
 
 // Доп. настройки сетевых запросов и прокси
 CONFIG.PROXY_URLS = [
-    // Публичные прокси для DEV/локальной проверки. Для PROD рекомендуется пустой список и DIRECT_CALENDAR_ENDPOINT.
     'https://api.allorigins.win/raw?url={ENCODED_URL}',
-    'https://thingproxy.freeboard.io/fetch/{ENCODED_URL}'
+    'https://thingproxy.freeboard.io/fetch/{ENCODED_URL}',
+    'https://api.codetabs.com/v1/proxy?quest={ENCODED_URL}',
+    'https://r.jina.ai/http://{URL}',
+    'https://r.jina.ai/http://{ENCODED_URL}',
+    'https://r.jina.ai/https://{URL}',
+    'https://r.jina.ai/https://{ENCODED_URL}'
 ];
 CONFIG.PROXY_TIMEOUT = 10000; // мс, таймаут для запросов через прокси
 
