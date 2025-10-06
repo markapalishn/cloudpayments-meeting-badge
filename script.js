@@ -80,17 +80,29 @@ class MeetingTimer {
     }
     
     async fetchWithProxy(url) {
-        const proxies = [
-            `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-            `https://thingproxy.freeboard.io/fetch/${url}`,
-            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-            `https://cors-anywhere.herokuapp.com/${url}`
-        ];
+        const proxies = window.CONFIG.PROXY_URLS || [];
+        const timeout = window.CONFIG.PROXY_TIMEOUT || 10000;
+
+        const resolveProxyUrl = (template, rawUrl) => {
+            if (!template) return '';
+            return template
+                .replaceAll('{ENCODED_URL}', encodeURIComponent(rawUrl))
+                .replaceAll('{URL}', rawUrl);
+        };
+        
+        if (!Array.isArray(proxies) || proxies.length === 0) {
+            throw new Error('Список proxy пуст. Настройте CONFIG.PROXY_URLS или используйте DIRECT_CALENDAR_ENDPOINT.');
+        }
         
         for (let i = 0; i < proxies.length; i++) {
+            const proxyTemplate = proxies[i];
+            const proxyUrl = resolveProxyUrl(proxyTemplate, url);
             try {
-                logger.info(`🔄 Пробуем proxy ${i + 1}/${proxies.length}:`, proxies[i]);
-                const response = await fetch(proxies[i]);
+                logger.info(`🔄 Пробуем proxy ${i + 1}/${proxies.length}:`, proxyUrl);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), timeout);
+                const response = await fetch(proxyUrl, { signal: controller.signal });
+                clearTimeout(timeoutId);
                 if (response.ok) {
                     logger.info(`✅ Proxy ${i + 1} успешно загрузил данные`);
                     return response;
@@ -102,6 +114,8 @@ class MeetingTimer {
                 }
             }
         }
+        
+        throw new Error('Ни один proxy не вернул успешный ответ (response.ok=false).');
     }
     
     async loadFromPublicCalendar(calendarUrl) {
@@ -112,7 +126,7 @@ class MeetingTimer {
             let urlWithCacheBuster = calendarUrl;
             if (calendarUrl.includes('calendar.google.com')) {
                 const separator = calendarUrl.includes('?') ? '&' : '?';
-                urlWithCacheBuster = `${calendarUrl}${separator}_t=${Date.now()}`;
+                urlWithCacheBuster = `${calendarUrl}${separator}_t=${Date.now()}&_v=${Math.random()}`;
                 logger.info('🔄 Добавлен параметр обхода кэша:', urlWithCacheBuster);
             }
             
@@ -123,13 +137,32 @@ class MeetingTimer {
             // Проверяем, является ли это Google Calendar URL
             logger.info('🔍 Проверяем URL календаря:', urlWithCacheBuster);
             if (urlWithCacheBuster.includes('calendar.google.com')) {
-                logger.info('🔧 ОБХОД CORS: Используем proxy для Google Calendar...');
-                response = await this.fetchWithProxy(urlWithCacheBuster);
+                // Пробуем прямой корпоративный эндпоинт, если задан
+                if (window.CONFIG?.DIRECT_CALENDAR_ENDPOINT) {
+                    try {
+                        logger.info('🔧 Пробуем прямой корпоративный эндпоинт...');
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), window.CONFIG.DIRECT_REQUEST_TIMEOUT || 8000);
+                        const directUrl = `${window.CONFIG.DIRECT_CALENDAR_ENDPOINT}${encodeURIComponent(urlWithCacheBuster)}`;
+                        response = await fetch(directUrl, { signal: controller.signal });
+                        clearTimeout(timeoutId);
+                    } catch (directErr) {
+                        logger.warn('❌ Прямой эндпоинт недоступен, fallback на proxy:', directErr.message);
+                    }
+                }
+
+                if (!response || !response.ok) {
+                    logger.info('🔧 ОБХОД CORS: Используем proxy для Google Calendar...');
+                    response = await this.fetchWithProxy(urlWithCacheBuster);
+                }
             } else {
                 logger.info('🔧 Прямой запрос для не-Google календаря...');
-                // Для других календарей пробуем прямой запрос
+                // Для других календарей пробуем прямой запрос с таймаутом
                 try {
-                    response = await fetch(calendarUrl);
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), window.CONFIG?.DIRECT_REQUEST_TIMEOUT || 8000);
+                    response = await fetch(calendarUrl, { signal: controller.signal });
+                    clearTimeout(timeoutId);
                 } catch (corsError) {
                     logger.debug('CORS блокирует прямой запрос, используем proxy...');
                     response = await this.fetchWithProxy(calendarUrl);
@@ -139,19 +172,38 @@ class MeetingTimer {
             const loadTime = Date.now() - startTime;
             logger.debug(`Запрос выполнен за ${loadTime}ms`);
             
+            if (!response) {
+                throw new Error('Не удалось получить ответ ни от прямого эндпоинта, ни от proxy.');
+            }
+            
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const icalData = await response.text();
             logger.info('✅ iCal данные загружены, размер:', icalData.length, 'символов');
+            logger.debug('Первые 200 символов ответа:', icalData.substring(0, 200));
             
-            // Проверяем, не получили ли мы HTML ошибку вместо iCal
-            if (icalData.includes('<html') || icalData.includes('Error 404')) {
+            // Сначала проверяем, что ответ не HTML-страница (с доп. защитой)
+            const isHtmlLike = /<\s*html[\s>]/i.test(icalData);
+            if (!icalData.includes('BEGIN:VCALENDAR') && (isHtmlLike || icalData.includes('Error 404'))) {
                 logger.error('Получена HTML ошибка вместо iCal данных. Календарь не публичный или не существует.');
+                logger.error('Полученные данные (первые 500 символов):', icalData.substring(0, 500));
                 this.hideBadge();
                 return;
             }
+
+            // Проверяем, что это валидные iCal данные
+            if (!icalData.includes('BEGIN:VCALENDAR')) {
+                logger.error('Получены невалидные iCal данные. Ожидается BEGIN:VCALENDAR');
+                logger.error('Полученные данные (первые 500 символов):', icalData.substring(0, 500));
+                this.hideBadge();
+                return;
+            }
+            
+            logger.info('✅ Данные содержат BEGIN:VCALENDAR - это валидные iCal данные');
+            
+            logger.info('✅ Данные не содержат HTML ошибок - продолжаем обработку');
             
             const events = this.parseICalData(icalData);
             logger.info('📅 События распарсены:', events.length);
@@ -266,9 +318,32 @@ class MeetingTimer {
         const events = [];
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const endDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 дней вперед
+
+        // Валидация входных дат
+        const isValidDate = (d) => d instanceof Date && !isNaN(d.getTime());
+        if (!isValidDate(event.start) || !isValidDate(event.end)) {
+            logger.warn('❌ Невалидные даты в событии для RRULE, пропускаем:', {
+                summary: event.summary,
+                start: event.start,
+                end: event.end
+            });
+            return events;
+        }
+        if (event.end.getTime() <= event.start.getTime()) {
+            logger.warn('❌ Некорректная длительность (end <= start) в событии для RRULE, пропускаем:', {
+                summary: event.summary,
+                start: event.start.toISOString(),
+                end: event.end.toISOString()
+            });
+            return events;
+        }
+
+        // Окно развёртки повторений (дней)
+        const rawWindow = window.CONFIG?.RECURRENCE_WINDOW_DAYS;
+        const windowDays = Number.isInteger(rawWindow) && rawWindow > 0 ? rawWindow : 7;
+        const endDate = new Date(today.getTime() + windowDays * 24 * 60 * 60 * 1000);
         
-        logger.info('🔄 Генерируем повторяющиеся события для:', event.summary);
+        logger.info('🔄 Генерируем повторяющиеся события для:', event.summary, 'Окно (дней):', windowDays);
         
         // Простая логика: генерируем события на каждый день недели, указанный в BYDAY
         const rrule = this.parseRRULE(event.rrule);
@@ -283,8 +358,8 @@ class MeetingTimer {
         
         logger.info('🔄 Дни недели для повторения:', allowedDays);
         
-        // Генерируем события на ближайшие 7 дней
-        for (let i = 0; i < 7; i++) {
+        // Генерируем события на ближайшее окно
+        for (let i = 0; i < windowDays; i++) {
             const currentDate = new Date(today.getTime() + i * 24 * 60 * 60 * 1000);
             const dayOfWeek = currentDate.getDay();
             
@@ -298,6 +373,16 @@ class MeetingTimer {
                 const duration = event.end.getTime() - event.start.getTime();
                 const eventEnd = new Date(eventStart.getTime() + duration);
                 
+                // Доп. валидация результата
+                if (!isValidDate(eventStart) || !isValidDate(eventEnd) || eventEnd.getTime() <= eventStart.getTime()) {
+                    logger.warn('❌ Пропущено сгенерированное событие из-за невалидных дат:', {
+                        summary: event.summary,
+                        start: eventStart,
+                        end: eventEnd
+                    });
+                    continue;
+                }
+
                 events.push({
                     summary: event.summary,
                     start: eventStart,

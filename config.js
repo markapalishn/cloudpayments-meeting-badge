@@ -50,6 +50,24 @@ const CONFIG = {
     RESPONSIBILITY_FONT_SIZE: 40 // Размер шрифта зон ответственности
 };
 
+// Доп. настройки сетевых запросов и прокси
+CONFIG.PROXY_URLS = [
+    // Публичные прокси для DEV/локальной проверки. Для PROD рекомендуется пустой список и DIRECT_CALENDAR_ENDPOINT.
+    'https://api.allorigins.win/raw?url={ENCODED_URL}',
+    'https://thingproxy.freeboard.io/fetch/{ENCODED_URL}'
+];
+CONFIG.PROXY_TIMEOUT = 10000; // мс, таймаут для запросов через прокси
+
+// Опционально: прямой CORS-совместимый эндпоинт, если доступен в вашей инфраструктуре
+// Например, корпоративный прокси/шлюз, который берёт URL календаря и возвращает ics с правильными CORS заголовками
+// Пример: 'https://your-domain.example.com/ical?url='
+CONFIG.DIRECT_CALENDAR_ENDPOINT = '';
+CONFIG.DIRECT_REQUEST_TIMEOUT = 8000; // мс, таймаут для прямого запроса
+
+// Настройки генерации повторяющихся событий
+// Используется как количество дней вперёд для развёртки RRULE-событий
+CONFIG.RECURRENCE_WINDOW_DAYS = 7;
+
 // Экспортируем конфигурацию
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = CONFIG;
