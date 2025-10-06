@@ -569,7 +569,12 @@ class MeetingTimer {
     
     updateDisplay() {
         this.hideLoader();
-        this.showBadge();
+        // Если сейчас нет текущей встречи, показываем логотип компании
+        if (this.currentMeeting) {
+            this.showBadge();
+        } else {
+            this.hideBadge();
+        }
         this.updateTimers();
         this.updateEmployeeInfo();
     }
