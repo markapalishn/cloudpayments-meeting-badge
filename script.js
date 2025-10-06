@@ -82,7 +82,7 @@ class MeetingTimer {
     async fetchWithProxy(url) {
         const proxies = [
             `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-            `https://thingproxy.freeboard.io/fetch/${url}`,
+            `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(url)}`,
             `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
             `https://cors-anywhere.herokuapp.com/${url}`
         ];
@@ -112,7 +112,7 @@ class MeetingTimer {
             let urlWithCacheBuster = calendarUrl;
             if (calendarUrl.includes('calendar.google.com')) {
                 const separator = calendarUrl.includes('?') ? '&' : '?';
-                urlWithCacheBuster = `${calendarUrl}${separator}_t=${Date.now()}`;
+                urlWithCacheBuster = `${calendarUrl}${separator}_t=${Date.now()}&_v=${Math.random()}`;
                 logger.info('🔄 Добавлен параметр обхода кэша:', urlWithCacheBuster);
             }
             
@@ -145,13 +145,28 @@ class MeetingTimer {
             
             const icalData = await response.text();
             logger.info('✅ iCal данные загружены, размер:', icalData.length, 'символов');
+            logger.debug('Первые 200 символов ответа:', icalData.substring(0, 200));
             
-            // Проверяем, не получили ли мы HTML ошибку вместо iCal
-            if (icalData.includes('<html') || icalData.includes('Error 404')) {
+            // Сначала проверяем, что ответ не HTML-страница (с доп. защитой)
+            const isHtmlLike = /<\s*html[\s>]/i.test(icalData);
+            if (!icalData.includes('BEGIN:VCALENDAR') && (isHtmlLike || icalData.includes('Error 404'))) {
                 logger.error('Получена HTML ошибка вместо iCal данных. Календарь не публичный или не существует.');
+                logger.error('Полученные данные (первые 500 символов):', icalData.substring(0, 500));
                 this.hideBadge();
                 return;
             }
+
+            // Проверяем, что это валидные iCal данные
+            if (!icalData.includes('BEGIN:VCALENDAR')) {
+                logger.error('Получены невалидные iCal данные. Ожидается BEGIN:VCALENDAR');
+                logger.error('Полученные данные (первые 500 символов):', icalData.substring(0, 500));
+                this.hideBadge();
+                return;
+            }
+            
+            logger.info('✅ Данные содержат BEGIN:VCALENDAR - это валидные iCal данные');
+            
+            logger.info('✅ Данные не содержат HTML ошибок - продолжаем обработку');
             
             const events = this.parseICalData(icalData);
             logger.info('📅 События распарсены:', events.length);
