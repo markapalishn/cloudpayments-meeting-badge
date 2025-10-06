@@ -80,17 +80,25 @@ class MeetingTimer {
     }
     
     async fetchWithProxy(url) {
-        const proxies = [
-            `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-            `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(url)}`,
-            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-            `https://cors-anywhere.herokuapp.com/${url}`
-        ];
+        const proxies = window.CONFIG.PROXY_URLS || [];
+        const timeout = window.CONFIG.PROXY_TIMEOUT || 10000;
+
+        const resolveProxyUrl = (template, rawUrl) => {
+            if (!template) return '';
+            return template
+                .replaceAll('{ENCODED_URL}', encodeURIComponent(rawUrl))
+                .replaceAll('{URL}', rawUrl);
+        };
         
         for (let i = 0; i < proxies.length; i++) {
+            const proxyTemplate = proxies[i];
+            const proxyUrl = resolveProxyUrl(proxyTemplate, url);
             try {
-                logger.info(`🔄 Пробуем proxy ${i + 1}/${proxies.length}:`, proxies[i]);
-                const response = await fetch(proxies[i]);
+                logger.info(`🔄 Пробуем proxy ${i + 1}/${proxies.length}:`, proxyUrl);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), timeout);
+                const response = await fetch(proxyUrl, { signal: controller.signal });
+                clearTimeout(timeoutId);
                 if (response.ok) {
                     logger.info(`✅ Proxy ${i + 1} успешно загрузил данные`);
                     return response;
@@ -123,13 +131,32 @@ class MeetingTimer {
             // Проверяем, является ли это Google Calendar URL
             logger.info('🔍 Проверяем URL календаря:', urlWithCacheBuster);
             if (urlWithCacheBuster.includes('calendar.google.com')) {
-                logger.info('🔧 ОБХОД CORS: Используем proxy для Google Calendar...');
-                response = await this.fetchWithProxy(urlWithCacheBuster);
+                // Пробуем прямой корпоративный эндпоинт, если задан
+                if (window.CONFIG?.DIRECT_CALENDAR_ENDPOINT) {
+                    try {
+                        logger.info('🔧 Пробуем прямой корпоративный эндпоинт...');
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), window.CONFIG.DIRECT_REQUEST_TIMEOUT || 8000);
+                        const directUrl = `${window.CONFIG.DIRECT_CALENDAR_ENDPOINT}${encodeURIComponent(urlWithCacheBuster)}`;
+                        response = await fetch(directUrl, { signal: controller.signal });
+                        clearTimeout(timeoutId);
+                    } catch (directErr) {
+                        logger.warn('❌ Прямой эндпоинт недоступен, fallback на proxy:', directErr.message);
+                    }
+                }
+
+                if (!response || !response.ok) {
+                    logger.info('🔧 ОБХОД CORS: Используем proxy для Google Calendar...');
+                    response = await this.fetchWithProxy(urlWithCacheBuster);
+                }
             } else {
                 logger.info('🔧 Прямой запрос для не-Google календаря...');
-                // Для других календарей пробуем прямой запрос
+                // Для других календарей пробуем прямой запрос с таймаутом
                 try {
-                    response = await fetch(calendarUrl);
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), window.CONFIG?.DIRECT_REQUEST_TIMEOUT || 8000);
+                    response = await fetch(calendarUrl, { signal: controller.signal });
+                    clearTimeout(timeoutId);
                 } catch (corsError) {
                     logger.debug('CORS блокирует прямой запрос, используем proxy...');
                     response = await this.fetchWithProxy(calendarUrl);

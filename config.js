@@ -50,6 +50,26 @@ const CONFIG = {
     RESPONSIBILITY_FONT_SIZE: 40 // Размер шрифта зон ответственности
 };
 
+// Доп. настройки сетевых запросов и прокси
+CONFIG.PROXY_URLS = [
+    // Заполняйте по необходимости. Можно оставить пустым массивом для отключения публичных прокси
+    // Используйте плейсхолдеры:
+    //  - {ENCODED_URL} — будет заменён на encodeURIComponent(исходный URL)
+    //  - {URL} — будет заменён как есть
+    // Примеры:
+    // 'https://api.allorigins.win/raw?url={ENCODED_URL}',
+    // 'https://thingproxy.freeboard.io/fetch/{ENCODED_URL}',
+    // 'https://api.codetabs.com/v1/proxy?quest={ENCODED_URL}',
+    // 'https://cors-anywhere.herokuapp.com/{URL}'
+];
+CONFIG.PROXY_TIMEOUT = 10000; // мс, таймаут для запросов через прокси
+
+// Опционально: прямой CORS-совместимый эндпоинт, если доступен в вашей инфраструктуре
+// Например, корпоративный прокси/шлюз, который берёт URL календаря и возвращает ics с правильными CORS заголовками
+// Пример: 'https://your-domain.example.com/ical?url='
+CONFIG.DIRECT_CALENDAR_ENDPOINT = '';
+CONFIG.DIRECT_REQUEST_TIMEOUT = 8000; // мс, таймаут для прямого запроса
+
 // Экспортируем конфигурацию
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = CONFIG;
