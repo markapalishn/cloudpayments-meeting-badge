@@ -70,6 +70,10 @@ CONFIG.PROXY_TIMEOUT = 10000; // мс, таймаут для запросов ч
 CONFIG.DIRECT_CALENDAR_ENDPOINT = '';
 CONFIG.DIRECT_REQUEST_TIMEOUT = 8000; // мс, таймаут для прямого запроса
 
+// Настройки генерации повторяющихся событий
+// Используется как количество дней вперёд для развёртки RRULE-событий
+CONFIG.RECURRENCE_WINDOW_DAYS = 7;
+
 // Экспортируем конфигурацию
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = CONFIG;

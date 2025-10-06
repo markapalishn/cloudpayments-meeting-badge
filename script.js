@@ -308,9 +308,32 @@ class MeetingTimer {
         const events = [];
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const endDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 дней вперед
+
+        // Валидация входных дат
+        const isValidDate = (d) => d instanceof Date && !isNaN(d.getTime());
+        if (!isValidDate(event.start) || !isValidDate(event.end)) {
+            logger.warn('❌ Невалидные даты в событии для RRULE, пропускаем:', {
+                summary: event.summary,
+                start: event.start,
+                end: event.end
+            });
+            return events;
+        }
+        if (event.end.getTime() <= event.start.getTime()) {
+            logger.warn('❌ Некорректная длительность (end <= start) в событии для RRULE, пропускаем:', {
+                summary: event.summary,
+                start: event.start.toISOString(),
+                end: event.end.toISOString()
+            });
+            return events;
+        }
+
+        // Окно развёртки повторений (дней)
+        const rawWindow = window.CONFIG?.RECURRENCE_WINDOW_DAYS;
+        const windowDays = Number.isInteger(rawWindow) && rawWindow > 0 ? rawWindow : 7;
+        const endDate = new Date(today.getTime() + windowDays * 24 * 60 * 60 * 1000);
         
-        logger.info('🔄 Генерируем повторяющиеся события для:', event.summary);
+        logger.info('🔄 Генерируем повторяющиеся события для:', event.summary, 'Окно (дней):', windowDays);
         
         // Простая логика: генерируем события на каждый день недели, указанный в BYDAY
         const rrule = this.parseRRULE(event.rrule);
@@ -325,8 +348,8 @@ class MeetingTimer {
         
         logger.info('🔄 Дни недели для повторения:', allowedDays);
         
-        // Генерируем события на ближайшие 7 дней
-        for (let i = 0; i < 7; i++) {
+        // Генерируем события на ближайшее окно
+        for (let i = 0; i < windowDays; i++) {
             const currentDate = new Date(today.getTime() + i * 24 * 60 * 60 * 1000);
             const dayOfWeek = currentDate.getDay();
             
@@ -340,6 +363,16 @@ class MeetingTimer {
                 const duration = event.end.getTime() - event.start.getTime();
                 const eventEnd = new Date(eventStart.getTime() + duration);
                 
+                // Доп. валидация результата
+                if (!isValidDate(eventStart) || !isValidDate(eventEnd) || eventEnd.getTime() <= eventStart.getTime()) {
+                    logger.warn('❌ Пропущено сгенерированное событие из-за невалидных дат:', {
+                        summary: event.summary,
+                        start: eventStart,
+                        end: eventEnd
+                    });
+                    continue;
+                }
+
                 events.push({
                     summary: event.summary,
                     start: eventStart,
