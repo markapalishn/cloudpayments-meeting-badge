@@ -90,6 +90,10 @@ class MeetingTimer {
                 .replaceAll('{URL}', rawUrl);
         };
         
+        if (!Array.isArray(proxies) || proxies.length === 0) {
+            throw new Error('Список proxy пуст. Настройте CONFIG.PROXY_URLS или используйте DIRECT_CALENDAR_ENDPOINT.');
+        }
+        
         for (let i = 0; i < proxies.length; i++) {
             const proxyTemplate = proxies[i];
             const proxyUrl = resolveProxyUrl(proxyTemplate, url);
@@ -110,6 +114,8 @@ class MeetingTimer {
                 }
             }
         }
+        
+        throw new Error('Ни один proxy не вернул успешный ответ (response.ok=false).');
     }
     
     async loadFromPublicCalendar(calendarUrl) {
@@ -165,6 +171,10 @@ class MeetingTimer {
             
             const loadTime = Date.now() - startTime;
             logger.debug(`Запрос выполнен за ${loadTime}ms`);
+            
+            if (!response) {
+                throw new Error('Не удалось получить ответ ни от прямого эндпоинта, ни от proxy.');
+            }
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
