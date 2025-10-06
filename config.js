@@ -52,15 +52,9 @@ const CONFIG = {
 
 // Доп. настройки сетевых запросов и прокси
 CONFIG.PROXY_URLS = [
-    // Заполняйте по необходимости. Можно оставить пустым массивом для отключения публичных прокси
-    // Используйте плейсхолдеры:
-    //  - {ENCODED_URL} — будет заменён на encodeURIComponent(исходный URL)
-    //  - {URL} — будет заменён как есть
-    // Примеры:
-    // 'https://api.allorigins.win/raw?url={ENCODED_URL}',
-    // 'https://thingproxy.freeboard.io/fetch/{ENCODED_URL}',
-    // 'https://api.codetabs.com/v1/proxy?quest={ENCODED_URL}',
-    // 'https://cors-anywhere.herokuapp.com/{URL}'
+    // Публичные прокси для DEV/локальной проверки. Для PROD рекомендуется пустой список и DIRECT_CALENDAR_ENDPOINT.
+    'https://api.allorigins.win/raw?url={ENCODED_URL}',
+    'https://thingproxy.freeboard.io/fetch/{ENCODED_URL}'
 ];
 CONFIG.PROXY_TIMEOUT = 10000; // мс, таймаут для запросов через прокси
 
