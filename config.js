@@ -11,7 +11,8 @@
 
 const CONFIG = {
     // Ссылка на Google Calendar в формате iCal
-    CALENDAR_URL: 'https://calendar.google.com/calendar/ical/a94fd18710fba31c468c5bb408b8f9895994fee34f76dc38fe053834daaff590%40group.calendar.google.com/private-44dfd0ef1af07d1b29e7b892de3bc009/basic.ics',
+    // Укажите здесь ваш секретный iCal-URL календаря
+    CALENDAR_URL: '',
     
     // Настройки обновления (в миллисекундах)
     TIMER_INTERVAL: 1000,        // Обновление таймера каждую секунду
