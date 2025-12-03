@@ -23,8 +23,9 @@ class MeetingTimer {
         this.updateInterval = null;
         
         this.initializeElements();
-        this.startTimer();
-        this.loadMeetings();
+        // Ветka main-without-calendar: отключаем синхронизацию с календарём,
+        // показываем только дефолтное состояние бейджа
+        this.setDefaultState();
         // Инициализируем информацию о сотруднике сразу
         this.updateEmployeeInfo();
     }
@@ -39,6 +40,28 @@ class MeetingTimer {
             nameBadge: document.getElementById('nameBadge'),
             responsibilityAreas: document.getElementById('responsibilityAreas')
         };
+    }
+    
+    // Дефолтное состояние без календаря:
+    // показываем логотип компании и информацию о сотруднике,
+    // таймеры фиксированы в режиме Free-time
+    setDefaultState() {
+        this.hideLoader();
+        this.currentMeeting = null;
+        this.nextMeeting = null;
+        
+        if (this.elements.meetingTitle) {
+            this.elements.meetingTitle.textContent = 'Free-time';
+        }
+        if (this.elements.currentTimer) {
+            this.elements.currentTimer.textContent = 'Free-time';
+            this.elements.currentTimer.className = 'timer';
+        }
+        if (this.elements.nextCountdown) {
+            this.elements.nextCountdown.textContent = 'нет';
+        }
+        
+        this.hideBadge();
     }
     
     hideBadge() {
@@ -65,14 +88,9 @@ class MeetingTimer {
     }
     
     async loadMeetings() {
-        try {
-            this.showLoader();
-            const calendarUrl = this.getGoogleCalendarUrl();
-            await this.loadFromPublicCalendar(calendarUrl);
-        } catch (error) {
-            logger.error('Ошибка загрузки встреч:', error);
-            this.hideBadge();
-        }
+        // Ветка main-without-calendar: синхронизация с календарём отключена
+        logger.info('Режим без календаря: loadMeetings() пропущен');
+        this.setDefaultState();
     }
     
     getGoogleCalendarUrl() {
@@ -641,15 +659,9 @@ class MeetingTimer {
     
     // Принудительное обновление календаря
     refreshCalendar() {
-        logger.info('🔄 Принудительное обновление календаря...');
-        // Показываем лоадер (он скроет бейдж встречи)
-        this.showLoader();
-        // Очищаем текущие данные
-        this.currentMeeting = null;
-        this.nextMeeting = null;
-        
-        // Загружаем календарь сразу
-        this.loadMeetings();
+        // Ветка main-without-calendar: никакой реальной синхронизации с календарём
+        logger.info('🔄 Режим без календаря: refreshCalendar() ничего не делает, устанавливаем дефолтное состояние');
+        this.setDefaultState();
     }
     
     showLoader() {
@@ -685,12 +697,10 @@ class MeetingTimer {
     
     // Принудительное обновление для OBS
     forceOBSRefresh() {
-        // Обновляем календарь
-        this.loadMeetings();
-        
-        // Принудительно обновляем отображение
-        this.updateDisplay();
-        
+        // Ветка main-without-calendar: просто слегка дёргаем DOM для OBS,
+        // но не трогаем календарь
+        this.setDefaultState();
+
         // Добавляем небольшое изменение в DOM для принудительного обновления
         const badge = document.getElementById('meetingBadge');
         if (badge) {
